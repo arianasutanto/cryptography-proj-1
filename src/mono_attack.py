@@ -33,7 +33,8 @@ common_english_frequency = {'E' : 12.0,
                         'X' : 0.17,
                         'Q' : 0.11,
                         'J' : 0.10,
-                        'Z' : 0.07 }
+                        'Z' : 0.07,
+                        ' ' : 18.00}
 
 for key, value in common_english_frequency.items():
         common_english_frequency[key] = value / 100
@@ -68,43 +69,24 @@ def random_char_insertion(random_prob, ciphertext):
     print(f"Length of ciphertext: {len(ciphertext)}\n")
     return ciphertext
 
-def compare_distributions(cipher_dist, candidate_dist):
-    """Compare the distribution of letters in the candidate plaintext with the distribution of letters in the ciphertext."""
-    #print(f"Cipher Distribution: {cipher_dist}\n")
-    #print(f"Candidate Distribution: {candidate_dist}\n")
-
-    # Create a list of the differences between the expected and actual frequencies
-    cipher_freq = sorted(list(cipher_dist.values()))
-    candidate_freq = sorted(list(candidate_dist.values()))
-
-    sum_of_diffs = 0
-    for i in range(len(cipher_freq)):
-        #print(f"Cipher Frequency: {cipher_freq[i]}\n")
-        #print(f"Candidate Frequency: {candidate_freq[i]}\n")
-        freq_diff = (cipher_freq[i] - candidate_freq[i]) ** 2
-        #print(f"Difference in frequency: {freq_diff}\n")
-        sum_of_diffs += freq_diff
-    
-    print(f"Sum of differences: {sum_of_diffs}\n")
-    return sum_of_diffs
-
-
-
-
 def freq_message(plaintext):
     """Find the frequency of each letter in the message and add it to the global list."""
     # Find the probability of each letter in the message
-    letter_counts = [0] * 26
+    letter_counts = [0] * 27
     total_letters = 0
     for char in plaintext:
         if char.isalpha():
             total_letters += 1
             letter_counts[ord(char.upper()) - ord('A')] += 1
+        elif char == ' ':
+            total_letters += 1
+            letter_counts[26] += 1
 
     letter_prob = [count / total_letters for count in letter_counts]
 
     # Make a dictionary of the letter probabilities
-    letter_prob = dict(zip([chr(i + ord('A')) for i in range(26)], letter_prob))
+    letter_prob = dict(zip([chr(i + ord('A')) for i in range(27)], letter_prob))
+    letter_prob[' '] = letter_prob.pop('[')
     
     # Add the letter probabilities to the global list
     global LETTER_FREQUENCY
@@ -125,34 +107,67 @@ def freq_message(plaintext):
 def generate_monoalphabetic_key():
     """Generate a monoalphabetic key by shuffling the alphabet."""
     alphabet = list(string.ascii_lowercase)
+    alphabet.append(' ')
     random.shuffle(alphabet)
     return ''.join(alphabet)
 
 def encrypt(text, key):
     """Encrypt the candidate plaintext using the generated key."""
     # Convert input text to lowercase
+    alphabet = list(string.ascii_lowercase)
+    alphabet.append(' ')
     text = text.lower()
     encrypted_text = ''
+    space_idx = key.index(' ')
+    char_map_space = alphabet[space_idx]
+    print(f"Space index: {space_idx}\n")
+    print(f"Character mapping for space: {char_map_space}\n")
     for char in text:
         if char.isalpha():
-            # Encrypt only alphabetic characters
+            # Encrypt alphabetic characters and spaces     
+            if char == char_map_space:
+                encrypted_text += ' '
+                continue
             idx = ord(char) - ord('a')
             encrypted_text += key[idx]
-        else:
-            # Leave non-alphabetic characters unchanged
-            encrypted_text += char
+        elif char == ' ':
+            encrypted_text += key[-1]
     return encrypted_text
+
+def compare_distributions(cipher_dist, candidate_dist):
+    """Compare the distribution of letters in the candidate plaintext with the distribution of letters in the ciphertext."""
+    #print(f"Cipher Distribution: {cipher_dist}\n")
+    #print(f"Candidate Distribution: {candidate_dist}\n")
+
+    # Create a list of the differences between the expected and actual frequencies
+    cipher_freq = sorted(list(cipher_dist.values()))
+    candidate_freq = sorted(list(candidate_dist.values()))
+
+    sum_of_diffs = 0
+    for i in range(len(cipher_freq)):
+        #print(f"Cipher Frequency: {cipher_freq[i]}\n")
+        #print(f"Candidate Frequency: {candidate_freq[i]}\n")
+        freq_diff = (cipher_freq[i] - candidate_freq[i]) ** 2
+        #print(f"Difference in frequency: {freq_diff}\n")
+        sum_of_diffs += freq_diff
+    
+    print(f"Sum of differences: {sum_of_diffs}\n")
+    return sum_of_diffs
 
 def improved_attack(ciphertext):
     """Perform an improved attack to find the best shifts."""
     # Create a frequency table for ciphertext letters
-    letter_counts = [0] * 26
+    letter_counts = [0] * 27
     total_letters = 0
     for char in ciphertext:
         if char.isalpha():
             idx = ord(char.lower()) - ord('a')
             letter_counts[idx] += 1
             total_letters += 1
+        elif char == ' ':
+            letter_counts[26] += 1
+            total_letters += 1
+
 
     # Calculate letter frequency of ciphertext and store in a dictionary
     cipher_freq = {chr(i + ord('A')): count / total_letters for i, count in enumerate(letter_counts)}
@@ -165,6 +180,8 @@ def improved_attack(ciphertext):
         sum_diff = compare_distributions(cipher_freq, value)
         print(f"Difference score between ciphertext and {key}: {sum_diff}\n")
         if min_diff == 0 or sum_diff < min_diff:
+            # Compare the frequencies between the ciphertext and the expected frequencies
+            # Most matches found in either expected frequency is the best guess for the plaintext
             if abs(min_diff - sum_diff) < 0.0001:
                 for letter, freq in value.items():
                     #print(f"Letter: {letter}, Frequency: {freq}\n")
