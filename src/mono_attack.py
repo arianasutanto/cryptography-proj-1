@@ -1,7 +1,9 @@
 import random
 import string
+from os import path
 
 # GLOBAL
+FILE_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
 common_english_frequency = {'E' : 12.0, 
                         'T' : 9.10, 
                         'A' : 8.12, 
@@ -109,10 +111,30 @@ def improved_attack(ciphertext, letter_frequency):
             letter_counts[idx] += 1
             total_letters += 1
 
-    # Calculate expected letter frequencies based on provided table
-    expected_frequencies = [letter_frequency.get(chr(ord('a') + i).upper(), 0) / 100 for i in range(26)]
+    # Calculate letter frequency of ciphertext and store in a dictionary
+    cipher_freq = {chr(i + ord('A')): count / total_letters for i, count in enumerate(letter_counts)}
+    print(f"Cipher Frequency: {cipher_freq}\n")
 
-    # Compute the correlation for each shift
+    # Compare the frequency of the ciphertext with frequencies in our global list
+    for key, value in LETTER_FREQUENCY.items():
+        print(f"Key: {key}, Value: {value}\n")
+        for letter, freq in value.items():
+            #print(f"Letter: {letter}, Frequency: {freq}\n")
+            if freq in cipher_freq.values():
+                print(f"Letter: {letter}, Frequency: {freq}\n")
+                cipher_letter = [k for k, v in cipher_freq.items() if v == freq]
+                print(f"Cipher Letter: {cipher_letter}, Cipher Frequency: {cipher_freq[cipher_letter[0]]}\n")
+                print(f"Match found from freq table {key}\n")
+                found_freq_key = key # This is the frequency table that matches the frequency of our ciphertext
+            else:
+                print(f"Letter: {letter}, Frequency: {freq}\n")
+                print(f"No match found from freq table {key}\n")
+                break
+    
+    # Create an expected frequency table based on the frequency table that matches the frequency of our ciphertext
+    expected_frequencies = list(LETTER_FREQUENCY[found_freq_key].values())
+
+    # Compute the correlation for each shift (ignore this part for now)
     correlations = []
     for shift in range(26):
         correlation = sum(letter_counts[(i + shift) % 26] * expected_frequencies[i] for i in range(26)) / total_letters
@@ -121,6 +143,7 @@ def improved_attack(ciphertext, letter_frequency):
     # Find the best shifts (keys)
     best_shifts = [i for i, corr in enumerate(correlations) if corr > 0.15]  # Adjust threshold as needed
     return best_shifts
+    # Ignore the part above for now
 
 if __name__ == "__main__":
     # # Get plaintext from user
@@ -129,7 +152,7 @@ if __name__ == "__main__":
 
     # Read a file of candidate plaintexts
     file_body = []
-    with open("plaintext_dictionary.txt", "r") as file:
+    with open(FILE_PATH, "r") as file:
         for line in file:
             file_body.append(line.strip())
         file_body = list(filter(None, file_body))
