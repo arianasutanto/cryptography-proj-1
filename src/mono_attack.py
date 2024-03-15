@@ -3,7 +3,8 @@ import string
 from os import path
 
 # GLOBAL
-FILE_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
+DICT_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
+PLAINTEXT_PATH = path.abspath(path.join(__file__, "..", "candidate_files"))
 common_english_frequency = {'E' : 12.0, 
                         'T' : 9.10, 
                         'A' : 8.12, 
@@ -67,7 +68,7 @@ def freq_message(plaintext):
     global LETTER_FREQUENCY
     global candidate_count
     candidate_count += 1
-    LETTER_FREQUENCY[f"Candidate {candidate_count}"] =  letter_prob
+    LETTER_FREQUENCY[f"pt{candidate_count}"] =  letter_prob
 
     # Print characters in letter_prob in order of probability
     #print("\nCharacters in order of probability: ", sorted(letter_prob, key=letter_prob.get, reverse=True))
@@ -100,7 +101,7 @@ def encrypt(text, key):
             encrypted_text += char
     return encrypted_text
 
-def improved_attack(ciphertext, letter_frequency):
+def improved_attack(ciphertext):
     """Perform an improved attack to find the best shifts."""
     # Create a frequency table for ciphertext letters
     letter_counts = [0] * 26
@@ -115,44 +116,46 @@ def improved_attack(ciphertext, letter_frequency):
     cipher_freq = {chr(i + ord('A')): count / total_letters for i, count in enumerate(letter_counts)}
     print(f"Cipher Frequency: {cipher_freq}\n")
 
+    match_count = 0
+    character_mapping = {}
+    found_freq_key = None
     # Compare the frequency of the ciphertext with frequencies in our global list
     for key, value in LETTER_FREQUENCY.items():
         print(f"Key: {key}, Value: {value}\n")
         for letter, freq in value.items():
             #print(f"Letter: {letter}, Frequency: {freq}\n")
-            if freq in cipher_freq.values():
+            if freq in cipher_freq.values() and match_count < 5:
                 print(f"Letter: {letter}, Frequency: {freq}\n")
                 cipher_letter = [k for k, v in cipher_freq.items() if v == freq]
                 print(f"Cipher Letter: {cipher_letter}, Cipher Frequency: {cipher_freq[cipher_letter[0]]}\n")
                 print(f"Match found from freq table {key}\n")
                 found_freq_key = key # This is the frequency table that matches the frequency of our ciphertext
+                character_mapping[letter] = cipher_letter # Map the letter to the cipher letter
+                match_count += 1
             else:
                 print(f"Letter: {letter}, Frequency: {freq}\n")
                 print(f"No match found from freq table {key}\n")
                 break
+        
+        # Check if we have found a matching frequency table
+        if found_freq_key:
+            break
     
     # Create an expected frequency table based on the frequency table that matches the frequency of our ciphertext
     expected_frequencies = list(LETTER_FREQUENCY[found_freq_key].values())
 
-    # Compute the correlation for each shift (ignore this part for now)
-    correlations = []
-    for shift in range(26):
-        correlation = sum(letter_counts[(i + shift) % 26] * expected_frequencies[i] for i in range(26)) / total_letters
-        correlations.append(correlation)
+    # Create a list of the differences between the expected and actual frequencies
+    with open(PLAINTEXT_PATH + "/" + f"{found_freq_key}.txt", "r") as file:
+        plaintext_body = file.read()
+        return plaintext_body, character_mapping
 
-    # Find the best shifts (keys)
-    best_shifts = [i for i, corr in enumerate(correlations) if corr > 0.15]  # Adjust threshold as needed
-    return best_shifts
-    # Ignore the part above for now
 
 if __name__ == "__main__":
-    # # Get plaintext from user
-    # plaintext = input("Enter your message: ")
-    # freq_message(plaintext)
 
     # Read a file of candidate plaintexts
     file_body = []
-    with open(FILE_PATH, "r") as file:
+    candidate_num = 2
+    with open(DICT_PATH, "r") as file:
         for line in file:
             file_body.append(line.strip())
         file_body = list(filter(None, file_body))
@@ -170,17 +173,21 @@ if __name__ == "__main__":
     print(f"Generated key: {key}\n")
 
     # Candidate plaintext
-    print(f"Candidate plaintext: {file_body[0]}\n")
+    print(f"Candidate plaintext: {file_body[candidate_num]}\n")
 
     # Encrypt the candidate plaintext
-    encrypted_message = encrypt(file_body[0], key)
+    encrypted_message = encrypt(file_body[candidate_num], key)
     print(f"Encrypted message: {encrypted_message}\n")
 
-    # Perform improved attack to find the best shifts
-    for key, value in LETTER_FREQUENCY.items():
-        print(f"Key: {key}, Value: {value}\n")
-        best_shifts = improved_attack(encrypted_message, value)
-        print(f"Best shifts: {best_shifts}\n")
+    # Perform improved attack to find the plaintext it matches
+    plaintext_guess, char_mapping = improved_attack(encrypted_message)
+
+    # Print the plaintext guess with character mapping
+    print(f"Plaintext guess: {plaintext_guess}\n")
+    print(f"Character mapping: {char_mapping}\n")
+    print("End of program.")
+
+
 
 
 
