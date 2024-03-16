@@ -167,7 +167,7 @@ def encrypt(text, key):
     """Encrypt the candidate plaintext using the generated key."""
     # Convert input text to lowercase
     alphabet = list(string.ascii_lowercase)
-    alphabet.append(' ')
+    alphabet.insert(0, ' ')
     text = text.lower()
     encrypted_text = ''
     space_idx = key.index(' ')
@@ -176,14 +176,14 @@ def encrypt(text, key):
     #print(f"Character mapping for space: {char_map_space}\n")
     for char in text:
         if char.isalpha():
-            # Encrypt alphabetic characters and spaces     
+            # Encrypt alphabetic characters and spaces   
             if char == char_map_space:
                 encrypted_text += ' '
                 continue
-            idx = ord(char) - ord('a')
+            idx = (ord(char) - ord('a') + 1)
             encrypted_text += key[idx]
         elif char == ' ':
-            encrypted_text += key[-1]
+            encrypted_text += key[0]
     return encrypted_text
 
 def compare_distributions(cipher_dist, candidate_dist):
@@ -297,7 +297,9 @@ if __name__ == "__main__":
 
     # Generate the mono-alphabetic key
     key = generate_monoalphabetic_key()
-    print(f"Generated key: {key}\n")
+    print(f"Generated key pair:")
+    print(" abcdefghijklmnopqrstuvwxyz")
+    print(key + "\n")
 
     # Candidate plaintext
     print(f"Candidate plaintext: {file_body[candidate_num]}\n")
