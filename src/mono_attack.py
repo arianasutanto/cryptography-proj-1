@@ -42,15 +42,24 @@ for key, value in common_english_frequency.items():
 LETTER_FREQUENCY = {"Common Frequency": common_english_frequency}
 candidate_count = 0
 
-def test_freq():
+def test_freq(cipher_freq=None):
     """Simple test to check if the sum of the squares of the probabilities is 0.065."""
-    freq_sum = 0
-
-    for letter, freq in LETTER_FREQUENCY['Common Frequency'].items():
-        prob = freq / 100
-        freq_sum += prob ** 2
-
-    print(freq_sum)
+    #freq_sum = 0
+    if cipher_freq:
+        freq_sum = 0
+        for freq in cipher_freq.values():
+            freq_sum += (freq) ** 2
+        print(f"Sum of the squares of the probabilities for the cipher frequency: {freq_sum}\n")
+    else:
+        for candidate, values in LETTER_FREQUENCY.items():
+            freq_sum = 0
+            for letter, freq in values.items():
+                print(f"Letter: {letter}, Frequency: {freq}\n")
+                freq_sum += (freq) ** 2
+                print(freq_sum)
+            
+            print(f"Sum of the squares of the probabilities for {candidate}: {freq_sum}\n")
+    #print(freq_sum)
 
 def coin_flip(prob, ciphertext):
     """Use coin flip to insert random characters in ciphertext."""
@@ -176,6 +185,18 @@ def compare_distributions(cipher_dist, candidate_dist):
         sum_of_diffs += freq_diff
     
     print(f"Sum of differences: {sum_of_diffs}\n")
+
+    # Calculate the mean of the cipher frequency and the candidate frequency
+    mean_cipher_freq = np.mean(cipher_freq)
+    mean_candidate_freq = np.mean(candidate_freq)
+    print(f"Mean of cipher frequency: {mean_cipher_freq}\n")
+    print(f"Mean of candidate frequency: {mean_candidate_freq}\n")
+
+    # Calculate the standard deviation of the cipher frequency and the candidate frequency
+    std_cipher_freq = np.std(cipher_freq)
+    std_candidate_freq = np.std(candidate_freq)
+    print(f"Standard deviation of cipher frequency: {std_cipher_freq}\n")
+    print(f"Standard deviation of candidate frequency: {std_candidate_freq}\n")
     return sum_of_diffs
 
 def improved_attack(ciphertext):
@@ -196,6 +217,9 @@ def improved_attack(ciphertext):
     # Calculate letter frequency of ciphertext and store in a dictionary
     cipher_freq = {chr(i + ord('A')): count / total_letters for i, count in enumerate(letter_counts)}
     print(f"Cipher Frequency: {cipher_freq}\n")
+
+    # Compare the frequencies of the ciphertext with the expected frequencies
+    test_freq(cipher_freq)
 
     min_diff = 0
     for key, value in LETTER_FREQUENCY.items():
@@ -255,6 +279,8 @@ if __name__ == "__main__":
     # Print the global list of letter frequencies
     #print(LETTER_FREQUENCY)
 
+    # Test the sum of the squares of the probabilities
+    test_freq()
     # Generate the mono-alphabetic key
     key = generate_monoalphabetic_key()
     print(f"Generated key: {key}\n")
