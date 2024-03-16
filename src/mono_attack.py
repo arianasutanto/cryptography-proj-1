@@ -52,6 +52,30 @@ def test_freq():
 
     print(freq_sum)
 
+def coin_flip(prob, ciphertext):
+    """Use coin flip to insert random characters in ciphertext."""
+    num_of_rand_chars = prob * len(ciphertext)
+    cipher_pointer = 0
+    message_pointer = 0
+    counter = 0
+    new_ciphertext = ""
+    while cipher_pointer < (len(ciphertext) + num_of_rand_chars):
+        coin_value = random.uniform(0,1)
+        #print(f"Coin value: {coin_value}\n")
+        if prob <= coin_value <= 1 or counter == num_of_rand_chars:
+            # Encrypt the candidate plaintext using the generated key
+            new_ciphertext += ciphertext[message_pointer]
+            message_pointer += 1
+        elif 0 <= coin_value < prob and counter < num_of_rand_chars:
+            rand_char = random.choice(" abcdefghijklmnopqrstuvwxyz")
+            new_ciphertext += rand_char
+            counter += 1
+        cipher_pointer += 1
+
+    print(f"Message pointer: {message_pointer}\nCipher pointer: {cipher_pointer}\n")
+    return new_ciphertext
+
+
 def random_char_insertion(random_prob, ciphertext):
     """Insert a random character into the ciphertext based on a random probability."""
     # list of chars to pick from
@@ -243,7 +267,9 @@ if __name__ == "__main__":
     print(f"Encrypted message: {encrypted_message}\n")
 
     # Insert a random character into the ciphertext
-    updated_encrypted_message = random_char_insertion(random_prob, encrypted_message)
+    #updated_encrypted_message = random_char_insertion(random_prob, encrypted_message)
+    updated_encrypted_message = coin_flip(random_prob, encrypted_message)
+    print(f"Updated encrypted message: {updated_encrypted_message}\nLength of updated message: {len(updated_encrypted_message)}\n")
 
     # Perform improved attack to find the plaintext it matches
     plaintext_guess = improved_attack(updated_encrypted_message)
