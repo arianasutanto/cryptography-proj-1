@@ -52,16 +52,16 @@ def test_freq(cipher_freq=None):
         freq_sum = 0
         for freq in cipher_freq.values():
             freq_sum += (freq) ** 2
-        print(f"Sum of the squares of the probabilities for the cipher frequency: {freq_sum}\n")
+        #print(f"Sum of the squares of the probabilities for the cipher frequency: {freq_sum}\n")
     else:
         for candidate, values in LETTER_FREQUENCY.items():
             freq_sum = 0
             for letter, freq in values.items():
-                print(f"Letter: {letter}, Frequency: {freq}\n")
+                #print(f"Letter: {letter}, Frequency: {freq}\n")
                 freq_sum += (freq) ** 2
-                print(freq_sum)
+                #print(freq_sum)
             
-            print(f"Sum of the squares of the probabilities for {candidate}: {freq_sum}\n")
+            #print(f"Sum of the squares of the probabilities for {candidate}: {freq_sum}\n")
     #print(freq_sum)
 
 def coin_flip(prob, ciphertext):
@@ -162,8 +162,8 @@ def encrypt(text, key):
     encrypted_text = ''
     space_idx = key.index(' ')
     char_map_space = alphabet[space_idx]
-    print(f"Space index: {space_idx}\n")
-    print(f"Character mapping for space: {char_map_space}\n")
+    #print(f"Space index: {space_idx}\n")
+    #print(f"Character mapping for space: {char_map_space}\n")
     for char in text:
         if char.isalpha():
             # Encrypt alphabetic characters and spaces     
@@ -193,19 +193,19 @@ def compare_distributions(cipher_dist, candidate_dist):
         #print(f"Difference in frequency: {freq_diff}\n")
         sum_of_diffs += freq_diff
     
-    print(f"Sum of differences: {sum_of_diffs}\n")
+    #print(f"Sum of differences: {sum_of_diffs}\n")
 
     # Calculate the mean of the cipher frequency and the candidate frequency
     mean_cipher_freq = np.mean(cipher_freq)
     mean_candidate_freq = np.mean(candidate_freq)
-    print(f"Mean of cipher frequency: {mean_cipher_freq}\n")
-    print(f"Mean of candidate frequency: {mean_candidate_freq}\n")
+    #print(f"Mean of cipher frequency: {mean_cipher_freq}\n")
+    #print(f"Mean of candidate frequency: {mean_candidate_freq}\n")
 
     # Calculate the standard deviation of the cipher frequency and the candidate frequency
     std_cipher_freq = np.std(cipher_freq)
     std_candidate_freq = np.std(candidate_freq)
-    print(f"Standard deviation of cipher frequency: {std_cipher_freq}\n")
-    print(f"Standard deviation of candidate frequency: {std_candidate_freq}\n")
+    #print(f"Standard deviation of cipher frequency: {std_cipher_freq}\n")
+    #print(f"Standard deviation of candidate frequency: {std_candidate_freq}\n")
     return sum_of_diffs
 
 def improved_attack(ciphertext):
@@ -232,10 +232,10 @@ def improved_attack(ciphertext):
 
     min_diff = 0
     for key, value in LETTER_FREQUENCY.items():
-        print(f"Key: {key}, Value: {value}\n")
+        #print(f"Key: {key}, Value: {value}\n")
         # calculate the KL divergence between the expected and actual frequencies
         sum_diff = compare_distributions(cipher_freq, value)
-        print(f"Difference score between ciphertext and {key}: {sum_diff}\n")
+        #print(f"Difference score between ciphertext and {key}: {sum_diff}\n")
         if min_diff == 0 or sum_diff < min_diff:
             # Compare the frequencies between the ciphertext and the expected frequencies
             # Most matches found in either expected frequency is the best guess for the plaintext
@@ -243,24 +243,19 @@ def improved_attack(ciphertext):
                 for letter, freq in value.items():
                     #print(f"Letter: {letter}, Frequency: {freq}\n")
                     if freq in cipher_freq.values():
-                        print(f"Letter: {letter}, Frequency: {freq}\n")
+                        #print(f"Letter: {letter}, Frequency: {freq}\n")
                         cipher_letter = [k for k, v in cipher_freq.items() if v == freq]
                         print(f"Cipher Letter: {cipher_letter}, Cipher Frequency: {cipher_freq[cipher_letter[0]]}\n")
                         print(f"Match found from freq table {key}\n")
                         found_freq_key = key # This is the frequency table that matches the frequency of our ciphertext
                         match_count += 1
                     else:
-                        print(f"Letter: {letter}, Frequency: {freq}\n")
+                        #print(f"Letter: {letter}, Frequency: {freq}\n")
                         print(f"No match found from freq table {key}\n")
                         break
             min_diff = sum_diff
             found_freq_key = key
             print(f"Found a better match: {found_freq_key}\nDifference score: {min_diff}\n")
-
-
-    
-    # Create an expected frequency table based on the frequency table that matches the frequency of our ciphertext
-    #expected_frequencies = list(LETTER_FREQUENCY[found_freq_key].values())
 
     # Create a list of the differences between the expected and actual frequencies
     with open(PLAINTEXT_PATH + "/" + f"{found_freq_key}.txt", "r") as file:
@@ -279,9 +274,8 @@ if __name__ == "__main__":
         for line in file:
             file_body.append(line.strip())
         file_body = list(filter(None, file_body))
-        #print(file_body, len(file_body))
 
-    # Get the frequency of each letter in each plaintext
+    # Get the frequency of each letter in each plaintext and run bigram analysis
     candidate = 0
     for plaintext in file_body:
         candidate += 1
@@ -293,6 +287,7 @@ if __name__ == "__main__":
 
     # Test the sum of the squares of the probabilities
     test_freq()
+
     # Generate the mono-alphabetic key
     key = generate_monoalphabetic_key()
     print(f"Generated key: {key}\n")
@@ -305,7 +300,6 @@ if __name__ == "__main__":
     print(f"Encrypted message: {encrypted_message}\n")
 
     # Insert a random character into the ciphertext
-    #updated_encrypted_message = random_char_insertion(random_prob, encrypted_message)
     updated_encrypted_message = coin_flip(random_prob, encrypted_message)
     print(f"Updated encrypted message: {updated_encrypted_message}\nLength of updated message: {len(updated_encrypted_message)}\n")
 
@@ -314,9 +308,8 @@ if __name__ == "__main__":
 
     # Print the plaintext guess with character mapping
     print("++++++++++++++++++++++ PLAINTEXT GUESS +++++++++++++++++++++++\n")
-    print(f"Plaintext guess from input {candidate_num}: {plaintext_guess}\n")
+    print(f"Plaintext guess from input {candidate_num + 1}: {plaintext_guess}\n")
     print(f"Guess made with random character insertion probability: {random_prob}\n")
-    #print(f"Character mapping: {char_mapping}\n")
     print("End of program.")
 
 
