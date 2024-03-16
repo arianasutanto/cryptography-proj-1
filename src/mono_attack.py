@@ -87,12 +87,22 @@ def coin_flip(prob, ciphertext):
     print(f"Message pointer: {message_pointer}\nCipher pointer: {cipher_pointer}\n")
     return new_ciphertext
 
-def bigram(plaintext_name, plaintext):
+def bigram(file_body, ciphertext):
     global BIGRAM
-    bigram_test = plaintext
-    res = Counter(bigram_test[idx : idx + 2] for idx in range(len(plaintext) -1))
-    BIGRAM[plaintext_name] = res
-    print(f"Bigram Frequency for {plaintext_name}: {res}")
+
+    candidate = 0
+    for plaintext in file_body:
+        candidate += 1
+        bigram_plaintext = plaintext
+        bigram_p = Counter(bigram_plaintext[idx : idx + 2] for idx in range(len(plaintext) -1))
+        BIGRAM[candidate] = bigram_p
+        print(f"Bigram Frequency for Plaintext {candidate}: {bigram_p}\n")
+
+    bigram_ciphertext = ciphertext
+    bigram_c = Counter(bigram_ciphertext[idx : idx + 2] for idx in range(len(plaintext) -1))
+    BIGRAM[ciphertext] = bigram_c
+    print(f"Bigram Frequency for Ciphertext: {bigram_c}\n")
+
 
 def random_char_insertion(random_prob, ciphertext):
     """Insert a random character into the ciphertext based on a random probability."""
@@ -149,7 +159,7 @@ def freq_message(plaintext):
 def generate_monoalphabetic_key():
     """Generate a monoalphabetic key by shuffling the alphabet."""
     alphabet = list(string.ascii_lowercase)
-    alphabet.append(' ')
+    alphabet.insert(0, ' ')
     random.shuffle(alphabet)
     return ''.join(alphabet)
 
@@ -274,14 +284,11 @@ if __name__ == "__main__":
         for line in file:
             file_body.append(line.strip())
         file_body = list(filter(None, file_body))
-
-    # Get the frequency of each letter in each plaintext and run bigram analysis
-    candidate = 0
-    for plaintext in file_body:
-        candidate += 1
-        bigram(candidate, plaintext)
-        freq_message(plaintext)
     
+    # Get the frequency of each letter in each plaintext
+    for plaintext in file_body:
+        freq_message(plaintext)
+
     # Print the global list of letter frequencies
     #print(LETTER_FREQUENCY)
 
@@ -306,13 +313,11 @@ if __name__ == "__main__":
     # Perform improved attack to find the plaintext it matches
     plaintext_guess = improved_attack(updated_encrypted_message)
 
+    # Run bigram analysis
+    bigram(file_body, updated_encrypted_message)
+
     # Print the plaintext guess with character mapping
     print("++++++++++++++++++++++ PLAINTEXT GUESS +++++++++++++++++++++++\n")
     print(f"Plaintext guess from input {candidate_num + 1}: {plaintext_guess}\n")
     print(f"Guess made with random character insertion probability: {random_prob}\n")
     print("End of program.")
-
-
-
-
-
