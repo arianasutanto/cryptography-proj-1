@@ -3,6 +3,7 @@ import string
 from os import path
 import numpy as np
 from scipy.stats import entropy
+from collections import Counter
 
 
 # GLOBAL
@@ -41,6 +42,8 @@ for key, value in common_english_frequency.items():
 
 LETTER_FREQUENCY = {"Common Frequency": common_english_frequency}
 candidate_count = 0
+
+BIGRAM = {}
 
 def test_freq(cipher_freq=None):
     """Simple test to check if the sum of the squares of the probabilities is 0.065."""
@@ -84,6 +87,12 @@ def coin_flip(prob, ciphertext):
     print(f"Message pointer: {message_pointer}\nCipher pointer: {cipher_pointer}\n")
     return new_ciphertext
 
+def bigram(plaintext_name, plaintext):
+    global BIGRAM
+    bigram_test = plaintext
+    res = Counter(bigram_test[idx : idx + 2] for idx in range(len(plaintext) -1))
+    BIGRAM[plaintext_name] = res
+    print(f"Bigram Frequency for {plaintext_name}: {res}")
 
 def random_char_insertion(random_prob, ciphertext):
     """Insert a random character into the ciphertext based on a random probability."""
@@ -273,7 +282,10 @@ if __name__ == "__main__":
         #print(file_body, len(file_body))
 
     # Get the frequency of each letter in each plaintext
+    candidate = 0
     for plaintext in file_body:
+        candidate += 1
+        bigram(candidate, plaintext)
         freq_message(plaintext)
     
     # Print the global list of letter frequencies
