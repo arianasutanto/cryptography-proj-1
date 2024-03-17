@@ -76,8 +76,9 @@ def coin_flip(prob, ciphertext):
         #print(f"Coin value: {coin_value}\n")
         if prob <= coin_value <= 1 or counter == num_of_rand_chars:
             # Encrypt the candidate plaintext using the generated key
-            new_ciphertext += ciphertext[message_pointer]
-            message_pointer += 1
+            if message_pointer < len(ciphertext):
+                new_ciphertext += ciphertext[message_pointer]
+                message_pointer += 1
         elif 0 <= coin_value < prob and counter < num_of_rand_chars:
             rand_char = random.choice(" abcdefghijklmnopqrstuvwxyz")
             new_ciphertext += rand_char
@@ -86,6 +87,33 @@ def coin_flip(prob, ciphertext):
 
     print(f"Message pointer: {message_pointer}\nCipher pointer: {cipher_pointer}\n")
     return new_ciphertext
+
+
+def compare_bigram_distributions(bigram_c):
+
+    # Create a list of the differences between the expected and actual frequencies
+
+    cipher_freq = list(bigram_c.values())
+    cipher_freq.sort(reverse=True)
+    
+    for key, value in BIGRAM.items():
+
+        candidate_freq = list(value.values())
+        candidate_freq.sort(reverse=True)
+        print(f"curr bigram: {candidate_freq}")
+        sum_of_diffs = 0
+        for i in range(0,15):
+            #print(f"Cipher Frequency: {cipher_freq[i]}\n")
+            #print(f"Candidate Frequency: {candidate_freq[i]}\n")
+            freq_diff = (cipher_freq[i] - candidate_freq[i]) ** 2
+            #print(f"Difference in frequency for pt {key} and ciphertext (bigram): {freq_diff}\n")
+
+            sum_of_diffs += freq_diff
+    
+        print(f"Sum of differences for pt {key} and ciphertext: {sum_of_diffs}\n")
+
+    #return sum_of_diffs
+
 
 def bigram(file_body, ciphertext):
     global BIGRAM
@@ -100,8 +128,9 @@ def bigram(file_body, ciphertext):
 
     bigram_ciphertext = ciphertext
     bigram_c = Counter(bigram_ciphertext[idx : idx + 2] for idx in range(len(plaintext) -1))
-    BIGRAM[ciphertext] = bigram_c
+    #BIGRAM[ciphertext] = bigram_c
     print(f"Bigram Frequency for Ciphertext: {bigram_c}\n")
+    compare_bigram_distributions(bigram_c)
 
 
 def random_char_insertion(random_prob, ciphertext):
