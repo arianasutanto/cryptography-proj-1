@@ -2,7 +2,9 @@ import random
 import string
 from os import path
 import numpy as np
+import re
 from collections import Counter
+from Levenshtein import distance as lev
 
 class Mono:
     """Class to generate a monoalphabetic key and encrypt a candidate plaintext using the key."""
@@ -177,6 +179,7 @@ class Attack:
     """Class to perform an improved attack and compare distributions."""
     
     # SECTION 1: GLOBAL VARIABLES
+    DICT_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
     PLAINTEXT_PATH = path.abspath(path.join(__file__, "..", "candidate_files"))
     BIGRAM = {}
     CIPHER_FREQUENCY = {}
@@ -210,6 +213,26 @@ class Attack:
     
     def get_cipher_frequency(self):
         return self.CIPHER_FREQUENCY
+    
+    def get_new_frequency(self, new_string):
+        """Find the frequency of each letter in the new string."""
+        # Find the probability of each letter in the message
+        letter_counts = [0] * 27
+        total_letters = 0
+        for char in new_string:
+            if char.isalpha():
+                total_letters += 1
+                letter_counts[ord(char.upper()) - ord('A')] += 1
+            elif char == ' ':
+                total_letters += 1
+                letter_counts[26] += 1
+
+        letter_prob = [count / total_letters for count in letter_counts]
+
+        # Make a dictionary of the letter probabilities
+        letter_prob = dict(zip([chr(i + ord('A')) for i in range(27)], letter_prob))
+        letter_prob[' '] = letter_prob.pop('[')
+        return letter_prob
     
     def get_sum_squares(self, cipher_dist, candidate_dist):
         """Compare the distribution of letters in the candidate plaintext with the distribution of letters in the ciphertext."""
@@ -248,7 +271,63 @@ class Attack:
             return plaintext_body
         
     
-    # SECTION 3: METHODS TO PERFORM BIGRAM ANALYSIS
+    # SECTION 3: METHODS TO PERFORM SECOND ATTACK (greater than 15%)
+    def substitute(self, ciphertext, idx1, idx2):
+        """sub each letter of ciphertext with corresponding frequency of plaintext"""
+
+        cipher_freq = list(dict(sorted(self.CIPHER_FREQUENCY.items(), key=lambda x: x[1], reverse=True)).keys())
+        pt_freq_1 = list(dict(sorted(self.LETTER_FREQUENCY[idx1].items(), key=lambda x: x[1], reverse=True)).keys())
+        pt_freq_2 = list(dict(sorted(self.LETTER_FREQUENCY[idx2].items(), key=lambda x: x[1], reverse=True)).keys())
+
+        pt_1_pair = {}
+        pt_2_pair = {}
+        for i in range(len(cipher_freq)):
+            pt_1_pair[cipher_freq[i]] = pt_freq_1[i]
+            pt_2_pair[cipher_freq[i]] = pt_freq_2[i]
+
+        new_ciphertext_1 = ""
+        new_ciphertext_2 = ""
+
+        for i in range(len(ciphertext)):
+            char = ciphertext[i].upper()
+            new_ciphertext_1 += pt_1_pair[char].lower()
+            new_ciphertext_2 += pt_2_pair[char].lower()
+
+
+        # call levy distance on new_ciphertext_1 and new_ciphertext_2
+        print(f"Original Ciphertext: {ciphertext}\n")
+        print(f"New Ciphertext 1: {new_ciphertext_1}\n")
+        print(f"New Ciphertext 2: {new_ciphertext_2}\n")
+
+        # Sum of squares of differences between the expected and actual frequencies
+        ciphertext_1_freq = self.get_new_frequency(new_ciphertext_1)
+        ciphertext_2_freq = self.get_new_frequency(new_ciphertext_2)
+
+        sum_diff_1 = self.get_sum_squares(ciphertext_1_freq, self.LETTER_FREQUENCY[idx1])
+        sum_diff_2 = self.get_sum_squares(ciphertext_2_freq, self.LETTER_FREQUENCY[idx2])
+
+        print(f"Sum of differences for pt {idx1} and new ciphertext: {sum_diff_1}\n")
+        print(f"Sum of differences for pt {idx2} and new ciphertext: {sum_diff_2}\n")
+
+        # Calculate levenstein distance
+        control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt1.txt")
+        test_lev = lev(self.PLAINTEXT_PATH + "/" + f"pt1.txt", self.PLAINTEXT_PATH + "/" + f"pt1.txt")
+        lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
+        lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+
+        print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
+        print(f"Levenshtein distance for same string: {test_lev}\n")
+        print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
+        print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
+
+        # print(f"Cipher Frequency: {cipher_freq}\n")
+        # print(f"Plaintext Frequency 1: {pt_freq_1}\n")
+        # print(f"Pair Frequency 1: {pt_1_pair}\n")
+        # print(f"Plaintext Frequency 2: {pt_freq_2}\n")
+        # print(f"Pair Frequency 2: {pt_2_pair}\n")
+        
+        # return new_ciphertext_1, new_ciphertext_2
+
         
     def get_candidates(self):
         """Get the frequency of each letter in each candidate plaintext."""
@@ -336,7 +415,7 @@ if __name__ == "__main__":
     mono_cipher.generate_frequency_table()
 
     ## STEP 3: PERFORM AN ATTACK
-    target_length = 660 # 10% of randomness on the ciphertext
+    target_length = 690 # 10% of randomness on the ciphertext
 
     # Create an instance of the Attack class
     frequency_tables = mono_cipher.get_frequency_table()
@@ -356,6 +435,9 @@ if __name__ == "__main__":
         # Store the two lowest differences
         lowest_diff, second_lowest_diff = sorted_diffs[0], sorted_diffs[1]
         print(f"Lowest difference: {lowest_diff}\nSecond lowest difference: {second_lowest_diff}\n")
+
+        # Perform substitution on the ciphertext
+        mono_attack.substitute(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
         plaintext_guess = mono_attack.bigram(randomized_cipher)
 
