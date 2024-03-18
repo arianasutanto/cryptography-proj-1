@@ -269,6 +269,74 @@ class Attack:
         with open(self.PLAINTEXT_PATH + "/" + f"{found_freq_key}.txt", "r") as file:
             plaintext_body = file.read()
             return plaintext_body
+
+
+
+
+     # SECTION 3: METHODS TO PERFORM SECOND ATTACK (greater than 15%)
+    def substitute_bi(self, ciphertext, idx1, idx2):
+        """sub each letter of ciphertext with corresponding frequency of plaintext"""
+
+        cipher_freq = self.bigram(ciphertext)
+        cipher_freq = list(cipher_freq.keys())
+
+        #cipher_freq = list(dict(sorted(self.CIPHER_FREQUENCY.items(), key=lambda x: x[1], reverse=True)).keys())
+        pt_freq_1 = list(dict(sorted(self.BIGRAM[idx1].items(), key=lambda x: x[1], reverse=True)).keys())
+        pt_freq_2 = list(dict(sorted(self.BIGRAM[idx2].items(), key=lambda x: x[1], reverse=True)).keys())
+
+        print(f"Cipher bigram frequencies: {cipher_freq} ")
+        print(f"PT 1 bigram frequencies: {pt_freq_1} ")
+        print(f"PT 2 bigram frequencies: {pt_freq_2} ")
+
+
+        pt_1_pair = {}
+        pt_2_pair = {}
+
+        for i in range(0, 10):
+            pt_1_pair[cipher_freq[i]] = pt_freq_1[i]
+            pt_2_pair[cipher_freq[i]] = pt_freq_2[i]
+
+        new_ciphertext_1 = ""
+        new_ciphertext_2 = ""
+
+        top10_1 = list(pt_1_pair.keys())[:10]
+        top10_2 = list(pt_2_pair.keys())[:10]
+
+        for i in range(0, len(ciphertext), 2):
+
+            chars = ciphertext[i:i+2] 
+
+            if ciphertext[i:i+2] in top10_1:
+                new_ciphertext_1 += pt_1_pair[chars]
+
+            else:
+                new_ciphertext_1 += chars
+
+        for i in range(0, len(ciphertext), 2):
+
+            chars = ciphertext[i:i+2] 
+
+            if ciphertext[i:i+2] in top10_2:
+                new_ciphertext_2 += pt_2_pair[chars]
+
+            else:
+                new_ciphertext_2 += chars
+
+                
+        print(f"Original Ciphertext (BIGRAM): {ciphertext}\n")
+        print(f"New Ciphertext 1 (BIGRAM): {new_ciphertext_1}\n")
+        print(f"New Ciphertext 2 (BIGRAM): {new_ciphertext_2}\n")
+
+
+        # Calculate levenstein distance
+        control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt4.txt")
+        lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
+        lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+
+        print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
+        print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
+        print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
+
         
     
     # SECTION 3: METHODS TO PERFORM SECOND ATTACK (greater than 15%)
@@ -372,14 +440,16 @@ class Attack:
             candidate += 1
             bigram_plaintext = plaintext
             bigram_p = Counter(bigram_plaintext[idx : idx + 2] for idx in range(len(plaintext) -1))
-            self.BIGRAM[candidate] = bigram_p
+            self.BIGRAM[f"pt{candidate}"] = bigram_p
             print(f"Bigram Frequency for Plaintext {candidate}: {bigram_p}\n")
 
         bigram_ciphertext = ciphertext
         bigram_c = Counter(bigram_ciphertext[idx : idx + 2] for idx in range(len(plaintext) -1))
         #BIGRAM[ciphertext] = bigram_c
         print(f"Bigram Frequency for Ciphertext: {bigram_c}\n")
-        self.compare_bigram_distributions(bigram_c)
+        #self.compare_bigram_distributions(bigram_c)
+
+        return bigram_c
     
 
 if __name__ == "__main__":
@@ -440,6 +510,8 @@ if __name__ == "__main__":
         mono_attack.substitute(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
         plaintext_guess = mono_attack.bigram(randomized_cipher)
+
+        mono_attack.substitute_bi(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
     # Print the plaintext guess
     print("++++++++++++++++++++++ PLAINTEXT GUESS +++++++++++++++++++++++\n")
