@@ -185,6 +185,7 @@ class Attack:
     def __init__(self, ciphertext, LETTER_FREQUENCY):
         self.ciphertext = ciphertext
         self.LETTER_FREQUENCY = LETTER_FREQUENCY
+        self.generate_cipher_freqeuency()
 
     def generate_cipher_freqeuency(self):
         """Get the frequency of each letter in the ciphertext."""
@@ -210,7 +211,7 @@ class Attack:
     def get_cipher_frequency(self):
         return self.CIPHER_FREQUENCY
     
-    def compare_sum_squares(self, cipher_dist, candidate_dist):
+    def get_sum_squares(self, cipher_dist, candidate_dist):
         """Compare the distribution of letters in the candidate plaintext with the distribution of letters in the ciphertext."""
 
         # Create a list of the differences between the expected and actual frequencies
@@ -223,31 +224,23 @@ class Attack:
             sum_of_diffs += freq_diff
         return sum_of_diffs
     
+    def get_all_diffs(self):
+        """Get the sum of the squares of the differences between the expected and actual frequencies for each candidate plaintext."""
+        diff_map = {}
+        for candidate_name, candidate_dist in self.LETTER_FREQUENCY.items():
+            sum_diff = self.get_sum_squares(self.CIPHER_FREQUENCY, candidate_dist)
+            print(f"Difference score between ciphertext and {candidate_name}: {sum_diff}\n")
+            diff_map[candidate_name] = sum_diff
+        return diff_map
+    
     def improved_attack(self):
         """Perform an improved attack to find the best shifts."""
-
-        min_diff = 0
-        self.generate_cipher_freqeuency()
-        for candidate_name, candidate_dist in self.LETTER_FREQUENCY.items():
-            # calculate the KL divergence between the expected and actual frequencies
-            sum_diff = self.compare_sum_squares(self.CIPHER_FREQUENCY, candidate_dist)
-            #print(f"Difference score between ciphertext and {key}: {sum_diff}\n")
-            if min_diff == 0 or sum_diff < min_diff:
-                # Compare the frequencies between the ciphertext and the expected frequencies
-                # Most matches found in either expected frequency is the best guess for the plaintext
-                if abs(min_diff - sum_diff) < 0.0001:
-                    for letter, freq in candidate_dist.items():
-                        if freq in self.CIPHER_FREQUENCY.values():
-                            cipher_letter = [k for k, v in self.CIPHER_FREQUENCY.items() if v == freq]
-                            print(f"Cipher Letter: {cipher_letter}, Cipher Frequency: {self.CIPHER_FREQUENCY[cipher_letter[0]]}\n")
-                            print(f"Match found from freq table {candidate_name}\n")
-                            found_freq_key = key # This is the frequency table that matches the frequency of our ciphertext
-                        else:
-                            print(f"No match found from freq table {candidate_name}\n")
-                            break
-                min_diff = sum_diff
-                found_freq_key = candidate_name
-                print(f"Found a better match: {found_freq_key}\nDifference score: {min_diff}\n")
+        # Create a map of the differences between the expected and actual frequencies
+        difference_map = self.get_all_diffs()
+        
+        # Get the minimum difference between the expected and actual frequencies
+        found_freq_key = min(difference_map, key=difference_map.get)
+        print(f"Best guess for the plaintext: {found_freq_key}\nDifference score: {difference_map[found_freq_key]}\n")
 
         # Create a list of the differences between the expected and actual frequencies
         with open(self.PLAINTEXT_PATH + "/" + f"{found_freq_key}.txt", "r") as file:
@@ -355,6 +348,15 @@ if __name__ == "__main__":
         plaintext_guess = mono_attack.improved_attack()
     else:
         # Perform bigram/levenshtein comparison for more reliable attack
+
+        # Get the two lowest sum of square differences
+        difference_map = mono_attack.get_all_diffs()
+        sorted_diffs = sorted(difference_map.items(), key=lambda x: x[1])
+        
+        # Store the two lowest differences
+        lowest_diff, second_lowest_diff = sorted_diffs[0], sorted_diffs[1]
+        print(f"Lowest difference: {lowest_diff}\nSecond lowest difference: {second_lowest_diff}\n")
+
         plaintext_guess = mono_attack.bigram(randomized_cipher)
 
     # Print the plaintext guess
