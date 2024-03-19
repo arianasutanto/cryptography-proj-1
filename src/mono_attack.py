@@ -477,6 +477,7 @@ class Attack:
             with open(self.PLAINTEXT_PATH + "/" + f"{idx2}.txt", "r") as file:
                 plaintext_body = file.read()
                 return plaintext_body
+        # Placeholder for now
         else:
             print("Levenshtein values in candidate plaintexts are equal.")
 
