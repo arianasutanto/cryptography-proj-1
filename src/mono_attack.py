@@ -6,10 +6,11 @@ import re
 from collections import Counter
 from Levenshtein import distance as lev
 
+# CLASS 1: GENERATING MONOALPHABETIC KEY AND ENCRYPTING PLAINTEXT
 class Mono:
     """Class to generate a monoalphabetic key and encrypt a candidate plaintext using the key."""
 
-    # SECTION 1: GLOBAL VARIABLES
+    # SECTION 1.1: GLOBAL VARIABLES
     DICT_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
     common_english_frequency = {'E' : 12.0, 
                         'T' : 9.10, 
@@ -45,7 +46,7 @@ class Mono:
     candidate_count = 0
     LETTER_FREQUENCY = {"Common Frequency": common_english_frequency}
 
-    # SECTION 2: METHODS TO CREATE FREQUENCY TABLES
+    # SECTION 1.2: METHODS TO CREATE FREQUENCY TABLES
     def generate_frequency_table(self):
         """Find the frequency of each letter in the message and add it to the global list."""
         file_body = self.get_candidate()
@@ -89,6 +90,7 @@ class Mono:
     
     def get_sum_squares(self, cipher_freq=None):
         """Simple test to check if the sum of the squares of the probabilities is 0.065."""
+
         if cipher_freq:
             freq_sum = 0
             for freq in cipher_freq.values():
@@ -97,12 +99,12 @@ class Mono:
         else:
             for candidate, values in self.LETTER_FREQUENCY.items():
                 freq_sum = 0
-                for letter, freq in values.items():
+                for freq in values.items():
                     freq_sum += (freq) ** 2
                 print(f"Sum of the squares of the probabilities for {candidate}: {freq_sum}\n")   
         print(freq_sum)
 
-    # SECTION 3: METHODS TO MONO ENCRYPT A CANDIDATE PLAINTEXT
+    # SECTION 1.3: METHODS TO MONO ENCRYPT A CANDIDATE PLAINTEXT
     def generate_monoalphabetic_key(self):
         """Generate a monoalphabetic key by shuffling the alphabet."""
         alphabet = list(string.ascii_lowercase)
@@ -133,7 +135,7 @@ class Mono:
                 encrypted_text += key[0]
         return encrypted_text
     
-    # SECTION 4: METHODS TO RANDOMLY INSERT CHARACTERS INTO THE CIPHERTEXT
+    # SECTION 1.4: METHODS TO RANDOMLY INSERT CHARACTERS INTO THE CIPHERTEXT
     def coin_flip(self, prob, ciphertext):
         """Use coin flip to insert random characters in ciphertext."""
         num_of_rand_chars = prob * len(ciphertext)
@@ -175,18 +177,18 @@ class Mono:
         print(f"Length of ciphertext: {len(ciphertext)}\n")
         return ciphertext
 
+# CLASS 2: PERFORMING ATTACK BASED ON DISTRIBUTIONS, BIGRAMS/TRIGRAMS, & STRING ANALYSIS
 class Attack:
-    """Class to perform an improved attack and compare distributions."""
-    
-    # SECTION 1: GLOBAL VARIABLES
+    """Class to perform an attack and compare distributions."""
+
+    # SECTION 2.1: GLOBAL VARIABLES
     DICT_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
     PLAINTEXT_PATH = path.abspath(path.join(__file__, "..", "candidate_files"))
     BIGRAM = {}
     TRIGRAM = {}
     CIPHER_FREQUENCY = {}
 
-
-    # SECTION 2: METHODS TO IMPROVED ATTACK
+    # SECTION 2.2: METHODS TO ATTACK THROUGH DISTRIBUTION/FREQUENCY ANALYSIS (randomness <= 15%)
     def __init__(self, ciphertext, LETTER_FREQUENCY):
         self.ciphertext = ciphertext
         self.LETTER_FREQUENCY = LETTER_FREQUENCY
@@ -271,80 +273,10 @@ class Attack:
         with open(self.PLAINTEXT_PATH + "/" + f"{found_freq_key}.txt", "r") as file:
             plaintext_body = file.read()
             return plaintext_body
-
-
-
-
-     # SECTION 3: METHODS TO PERFORM SECOND ATTACK (greater than 15%)
-    def substitute_bi(self, ciphertext, idx1, idx2):
-        """sub each bigram of ciphertext with corresponding bigram frequency of plaintext"""
-
-        cipher_freq = self.bigram(ciphertext)
-        cipher_freq = list(cipher_freq.keys())
-
-        #cipher_freq = list(dict(sorted(self.CIPHER_FREQUENCY.items(), key=lambda x: x[1], reverse=True)).keys())
-        pt_freq_1 = list(dict(sorted(self.BIGRAM[idx1].items(), key=lambda x: x[1], reverse=True)).keys())
-        pt_freq_2 = list(dict(sorted(self.BIGRAM[idx2].items(), key=lambda x: x[1], reverse=True)).keys())
-
-        #print(f"Cipher bigram frequencies: {cipher_freq} ")
-        #print(f"PT 1 bigram frequencies: {pt_freq_1} ")
-        #print(f"PT 2 bigram frequencies: {pt_freq_2} ")
-
-
-        pt_1_pair = {}
-        pt_2_pair = {}
-
-        for i in range(0, 10):
-            pt_1_pair[cipher_freq[i]] = pt_freq_1[i]
-            pt_2_pair[cipher_freq[i]] = pt_freq_2[i]
-
-        new_ciphertext_1 = ""
-        new_ciphertext_2 = ""
-
-        top10_1 = list(pt_1_pair.keys())[:10]
-        top10_2 = list(pt_2_pair.keys())[:10]
-
-        for i in range(0, len(ciphertext), 2):
-
-            chars = ciphertext[i:i+2] 
-
-            if ciphertext[i:i+2] in top10_1:
-                new_ciphertext_1 += pt_1_pair[chars]
-
-            else:
-                new_ciphertext_1 += chars
-
-        for i in range(0, len(ciphertext), 2):
-
-            chars = ciphertext[i:i+2] 
-
-            if ciphertext[i:i+2] in top10_2:
-                new_ciphertext_2 += pt_2_pair[chars]
-
-            else:
-                new_ciphertext_2 += chars
-
-                
-        print(f"Original Ciphertext (BIGRAM): {ciphertext}\n")
-        print(f"New Ciphertext 1 (BIGRAM): {new_ciphertext_1}\n")
-        print(f"New Ciphertext 2 (BIGRAM): {new_ciphertext_2}\n")
-
-
-        # Calculate levenstein distance
-        control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt4.txt")
-        lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
-        lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
-
-        print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
-        print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
-        print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
-
         
-    
-    # SECTION 3: METHODS TO PERFORM SECOND ATTACK (greater than 15%)
-    def substitute(self, ciphertext, idx1, idx2):
+    # SECTION 2.3: METHODS TO ATTACK THROUGH STRING SUBSTITUTION/LEVENSHTEIN ALGORITHM (randomness > 15%)
+    def substitute_single(self, ciphertext, idx1, idx2):
         """sub each letter of ciphertext with corresponding frequency of plaintext"""
-
         cipher_freq = list(dict(sorted(self.CIPHER_FREQUENCY.items(), key=lambda x: x[1], reverse=True)).keys())
         pt_freq_1 = list(dict(sorted(self.LETTER_FREQUENCY[idx1].items(), key=lambda x: x[1], reverse=True)).keys())
         pt_freq_2 = list(dict(sorted(self.LETTER_FREQUENCY[idx2].items(), key=lambda x: x[1], reverse=True)).keys())
@@ -363,7 +295,6 @@ class Attack:
             new_ciphertext_1 += pt_1_pair[char].lower()
             new_ciphertext_2 += pt_2_pair[char].lower()
 
-
         # call levy distance on new_ciphertext_1 and new_ciphertext_2
         print(f"Original Ciphertext: {ciphertext}\n")
         print(f"New Ciphertext 1: {new_ciphertext_1}\n")
@@ -380,25 +311,175 @@ class Attack:
         print(f"Sum of differences for pt {idx2} and new ciphertext: {sum_diff_2}\n")
 
         # Calculate levenstein distance
-        control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt1.txt")
-        test_lev = lev(self.PLAINTEXT_PATH + "/" + f"pt1.txt", self.PLAINTEXT_PATH + "/" + f"pt1.txt")
-        lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
-        lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+        # control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt.txt")
+        # test_lev = lev(self.PLAINTEXT_PATH + "/" + f"pt1.txt", self.PLAINTEXT_PATH + "/" + f"pt.txt")
+        # test_lev = lev(self.PLAINTEXT_PATH + "/" + f"pt.txt", self.PLAINTEXT_PATH + "/" + f"pt.txt")
+        # lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
+        # lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+
+        # print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
+        # print(f"Levenshtein distance for same string: {test_lev}\n")
+        # print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
+        # print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
+        
+        return new_ciphertext_1, new_ciphertext_2
+
+    def substitute_bigrams(self, ciphertext, idx1, idx2):
+        """sub each bigram of ciphertext with corresponding bigram frequency of plaintext"""
+        cipher_freq = self.bigram(ciphertext)
+        cipher_freq = list(cipher_freq.keys())
+
+        #cipher_freq = list(dict(sorted(self.CIPHER_FREQUENCY.items(), key=lambda x: x[1], reverse=True)).keys())
+        pt_freq_1 = list(dict(sorted(self.BIGRAM[idx1].items(), key=lambda x: x[1], reverse=True)).keys())
+        pt_freq_2 = list(dict(sorted(self.BIGRAM[idx2].items(), key=lambda x: x[1], reverse=True)).keys())
+
+        #print(f"Cipher bigram frequencies: {cipher_freq} ")
+        #print(f"PT 1 bigram frequencies: {pt_freq_1} ")
+        #print(f"PT 2 bigram frequencies: {pt_freq_2} ")
+
+        pt_1_pair = {}
+        pt_2_pair = {}
+
+        for i in range(0, 10):
+            pt_1_pair[cipher_freq[i]] = pt_freq_1[i]
+            pt_2_pair[cipher_freq[i]] = pt_freq_2[i]
+
+        new_ciphertext_1 = ""
+        new_ciphertext_2 = ""
+
+        top10_1 = list(pt_1_pair.keys())[:10]
+        top10_2 = list(pt_2_pair.keys())[:10]
+
+        for i in range(0, len(ciphertext), 2):
+            chars = ciphertext[i:i+2] 
+            if ciphertext[i:i+2] in top10_1:
+                new_ciphertext_1 += pt_1_pair[chars]
+            else:
+                new_ciphertext_1 += chars
+
+        for i in range(0, len(ciphertext), 2):
+            chars = ciphertext[i:i+2] 
+            if ciphertext[i:i+2] in top10_2:
+                new_ciphertext_2 += pt_2_pair[chars]
+            else:
+                new_ciphertext_2 += chars
+                
+        # print(f"Original Ciphertext (BIGRAM): {ciphertext}\n")
+        # print(f"New Ciphertext 1 (BIGRAM): {new_ciphertext_1}\n")
+        # print(f"New Ciphertext 2 (BIGRAM): {new_ciphertext_2}\n")
+
+        # Calculate levenstein distance
+        # control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt.txt")
+        # lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
+        # lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+
+        # print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
+        # print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
+        # print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
+        
+        return new_ciphertext_1, new_ciphertext_2
+
+    def substitute_trigrams(self, ciphertext, idx1, idx2):
+        """sub each trigram of ciphertext with corresponding bigram frequency of plaintext"""
+        cipher_freq = self.trigram(ciphertext)
+        cipher_freq = list(cipher_freq.keys())
+
+        #cipher_freq = list(dict(sorted(self.CIPHER_FREQUENCY.items(), key=lambda x: x[1], reverse=True)).keys())
+        pt_freq_1 = list(dict(sorted(self.TRIGRAM[idx1].items(), key=lambda x: x[1], reverse=True)).keys())
+        pt_freq_2 = list(dict(sorted(self.TRIGRAM[idx2].items(), key=lambda x: x[1], reverse=True)).keys())
+
+        # print(f"Cipher trigram frequencies: {cipher_freq} ")
+        # print(f"PT 1 trigram frequencies: {pt_freq_1} ")
+        # print(f"PT 2 trigram frequencies: {pt_freq_2} ")
+
+        pt_1_pair = {}
+        pt_2_pair = {}
+
+        for i in range(0, 10):
+            pt_1_pair[cipher_freq[i]] = pt_freq_1[i]
+            pt_2_pair[cipher_freq[i]] = pt_freq_2[i]
+
+        new_ciphertext_1 = ""
+        new_ciphertext_2 = ""
+
+        top10_1 = list(pt_1_pair.keys())[:10]
+        top10_2 = list(pt_2_pair.keys())[:10]
+
+        for i in range(0, len(ciphertext), 3):
+            chars = ciphertext[i:i+3] 
+            if ciphertext[i:i+3] in top10_1:
+                new_ciphertext_1 += pt_1_pair[chars]
+            else:
+                new_ciphertext_1 += chars
+
+        for i in range(0, len(ciphertext), 3):
+            chars = ciphertext[i:i+3] 
+            if ciphertext[i:i+3] in top10_2:
+                new_ciphertext_2 += pt_2_pair[chars]
+            else:
+                new_ciphertext_2 += chars
+
+        # print(f"Original Ciphertext (TRIGRAM): {ciphertext}\n")
+        # print(f"New Ciphertext 1 (TRIGRAM): {new_ciphertext_1}\n")
+        # print(f"New Ciphertext 2 (TRIGRAM): {new_ciphertext_2}\n")
+
+        # Calculate levenstein distance
+        # control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt.txt")
+        # lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
+        # lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+
+        # print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
+        # print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
+        # print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
+
+        return new_ciphertext_1, new_ciphertext_2
+    
+    def levenshtein(self, ciphertext, idx1, idx2):
+        """Levenshtein algorithm analysis"""
+        single_sub_1, single_sub_2 = self.substitute_single(ciphertext, idx1, idx2)
+        bigram_sub_1, bigram_sub_2 = self.substitute_bigrams(ciphertext, idx1, idx2)
+        trigram_sub_1, trigram_sub_2 = self.substitute_trigrams(ciphertext, idx1, idx2)
+
+        print(f"Original Ciphertext (BIGRAM): {ciphertext}\n")
+        print(f"New Ciphertext 1 (BIGRAM): {bigram_sub_1}\n")
+        print(f"New Ciphertext 2 (BIGRAM): {bigram_sub_2}\n")
+
+        print(f"Original Ciphertext (TRIGRAM): {ciphertext}\n")
+        print(f"New Ciphertext 1 (TRIGRAM): {trigram_sub_1}\n")
+        print(f"New Ciphertext 2 (TRIGRAM): {trigram_sub_2}\n")
+
+        # Calculate levenshtein distance
+        # test_lev = lev(self.PLAINTEXT_PATH + "/" + f"pt1.txt", self.PLAINTEXT_PATH + "/" + f"pt.txt")
+        control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt.txt")
+        single_lev_dist_1 = lev(single_sub_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
+        single_lev_dist_2 = lev(single_sub_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+
+        bigram_lev_dist_1 = lev(bigram_sub_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
+        bigram_lev_dist_2 = lev(bigram_sub_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+
+        trigram_lev_dist_1 = lev(trigram_sub_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
+        trigram_lev_dist_2 = lev(trigram_sub_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
 
         print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
-        print(f"Levenshtein distance for same string: {test_lev}\n")
-        print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
-        print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
+        print(f"Levenshtein distance for pt {idx1} and new ciphertext (SINGLE): {single_lev_dist_1}\n")
+        print(f"Levenshtein distance for pt {idx2} and new ciphertext (SINGLE): {single_lev_dist_2}\n")
+        print(f"Levenshtein distance for pt {idx1} and new ciphertext (BIGRAM): {bigram_lev_dist_1}\n")
+        print(f"Levenshtein distance for pt {idx2} and new ciphertext (BIGRAM): {bigram_lev_dist_2}\n")
+        print(f"Levenshtein distance for pt {idx1} and new ciphertext (TRIGRAM): {trigram_lev_dist_1}\n")
+        print(f"Levenshtein distance for pt {idx2} and new ciphertext (TRIGRAM): {trigram_lev_dist_2}\n")
 
-        # print(f"Cipher Frequency: {cipher_freq}\n")
-        # print(f"Plaintext Frequency 1: {pt_freq_1}\n")
-        # print(f"Pair Frequency 1: {pt_1_pair}\n")
-        # print(f"Plaintext Frequency 2: {pt_freq_2}\n")
-        # print(f"Pair Frequency 2: {pt_2_pair}\n")
-        
-        # return new_ciphertext_1, new_ciphertext_2
+        # Choosing from single_lev as of now
+        if single_lev_dist_1 < single_lev_dist_2:
+            with open(self.PLAINTEXT_PATH + "/" + f"{idx1}.txt", "r") as file:
+                plaintext_body = file.read()
+                return plaintext_body
+        elif single_lev_dist_1 > single_lev_dist_2:
+            with open(self.PLAINTEXT_PATH + "/" + f"{idx2}.txt", "r") as file:
+                plaintext_body = file.read()
+                return plaintext_body
+        else:
+            print("Levenshtein values in candidate plaintexts are equal.")
 
-        
     def get_candidates(self):
         """Get the frequency of each letter in each candidate plaintext."""
         # Read a file of candidate plaintexts
@@ -408,49 +489,6 @@ class Attack:
                 file_body.append(line.strip())
             file_body = list(filter(None, file_body))
         return file_body
-    
-    def compare_bigram_distributions(self, bigram_c):
-
-        # Create a list of the differences between the expected and actual frequencies
-
-        cipher_freq = list(bigram_c.values())
-        cipher_freq.sort(reverse=True)
-        
-        for key, value in self.BIGRAM.items():
-
-            candidate_freq = list(value.values())
-            candidate_freq.sort(reverse=True)
-            print(f"curr bigram: {candidate_freq}")
-            sum_of_diffs = 0
-            for i in range(0,15):
-                #print(f"Cipher Frequency: {cipher_freq[i]}\n")
-                #print(f"Candidate Frequency: {candidate_freq[i]}\n")
-                freq_diff = (cipher_freq[i] - candidate_freq[i]) ** 2
-                #print(f"Difference in frequency for pt {key} and ciphertext (bigram): {freq_diff}\n")
-
-                sum_of_diffs += freq_diff
-        
-            print(f"Sum of differences for pt {key} and ciphertext: {sum_of_diffs}\n")
-
-        #return sum_of_diffs
-
-
-    def trigram(self, ciphertext):
-        """Perform trigram analysis on the candidate plaintexts and the ciphertext."""
-        file_body = self.get_candidates()
-        candidate = 0
-        for plaintext in file_body:
-            candidate += 1
-            trigram_plaintext = plaintext
-            trigram_p = Counter(trigram_plaintext[idx : idx + 3] for idx in range(len(plaintext) -1))
-            self.TRIGRAM[f"pt{candidate}"] = trigram_p
-            print(f"Trigram Frequency for Plaintext {candidate}: {trigram_p}\n")
-
-        trigram_ciphertext = ciphertext
-        trigram_c = Counter(trigram_ciphertext[idx : idx + 3] for idx in range(len(plaintext) -1))
-        #print(f"Trigram Frequency for Ciphertext: {trigram_c}\n")
-
-        #return trigram_c
 
     def bigram(self, ciphertext):
         """Perform bigram analysis on the candidate plaintexts and the ciphertext."""
@@ -471,6 +509,45 @@ class Attack:
 
         return bigram_c
     
+    def compare_bigram_distributions(self, bigram_c):
+        # Create a list of the differences between the expected and actual frequencies
+        cipher_freq = list(bigram_c.values())
+        cipher_freq.sort(reverse=True)
+        
+        for key, value in self.BIGRAM.items():
+
+            candidate_freq = list(value.values())
+            candidate_freq.sort(reverse=True)
+            print(f"curr bigram: {candidate_freq}")
+            sum_of_diffs = 0
+            for i in range(0,15):
+                #print(f"Cipher Frequency: {cipher_freq[i]}\n")
+                #print(f"Candidate Frequency: {candidate_freq[i]}\n")
+                freq_diff = (cipher_freq[i] - candidate_freq[i]) ** 2
+                #print(f"Difference in frequency for pt {key} and ciphertext (bigram): {freq_diff}\n")
+
+                sum_of_diffs += freq_diff
+        
+            print(f"Sum of differences for pt {key} and ciphertext: {sum_of_diffs}\n")
+
+        # return sum_of_diffs
+    
+    def trigram(self, ciphertext):
+        """Perform trigram analysis on the candidate plaintexts and the ciphertext."""
+        file_body = self.get_candidates()
+        candidate = 0
+        for plaintext in file_body:
+            candidate += 1
+            trigram_plaintext = plaintext
+            trigram_p = Counter(trigram_plaintext[idx : idx + 3] for idx in range(len(plaintext) -1))
+            self.TRIGRAM[f"pt{candidate}"] = trigram_p
+            # print(f"Trigram Frequency for Plaintext {candidate}: {trigram_p}\n")
+
+        trigram_ciphertext = ciphertext
+        trigram_c = Counter(trigram_ciphertext[idx : idx + 3] for idx in range(len(plaintext) -1))
+        # print(f"Trigram Frequency for Ciphertext: {trigram_c}\n")
+
+        return trigram_c
 
 if __name__ == "__main__":
 
@@ -527,13 +604,16 @@ if __name__ == "__main__":
         print(f"Lowest difference: {lowest_diff}\nSecond lowest difference: {second_lowest_diff}\n")
 
         # Perform substitution on the ciphertext
-        mono_attack.substitute(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
+        mono_attack.substitute_single(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
-        plaintext_guess = mono_attack.bigram(randomized_cipher)
+        # plaintext_guess = mono_attack.bigram(randomized_cipher)
+        plaintext_guess = mono_attack.levenshtein(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
-        mono_attack.substitute_bi(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
+        mono_attack.substitute_bigrams(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
-        mono_attack.trigram(randomized_cipher)
+        # mono_attack.trigram(randomized_cipher)
+
+        mono_attack.substitute_trigrams(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
     # Print the plaintext guess
     print("++++++++++++++++++++++ PLAINTEXT GUESS +++++++++++++++++++++++\n")
