@@ -1,8 +1,7 @@
 import random
 import string
+import os
 from os import path
-import numpy as np
-import re
 from collections import Counter
 from Levenshtein import distance as lev
 
@@ -583,6 +582,7 @@ class Attack:
 
 class HillClimb():
 
+    PLAINTEXT_PATH = path.abspath(path.join(__file__, "..", "candidate_files"))
     TRIGRAM = {}
 
     def __init__(self, ciphertext, plaintext_list, cipher_frequency):
@@ -647,6 +647,19 @@ class HillClimb():
             char = ciphertext[i].upper()
             decrypt_cipher += key[char].lower()
         return decrypt_cipher
+
+    def get_lev_score(self, ciphertext):
+        """Get the levenshtein distance between the ciphertext and all plaintext."""
+        lev_dict = {}
+        counter = 0
+        for f in os.listdir(self.PLAINTEXT_PATH):
+            if f.endswith(".txt"):
+                counter += 1
+                lev_score = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt{counter}.txt")
+                print(f"Levenshtein distance between {f} and the ciphertext: {lev_score}\n")
+                cand_name = f.split(".")[0]
+                lev_dict[cand_name] = lev_score
+        return lev_dict
     
     def get_fitness_score(self, key, trigram_c, trigram_p):
         """Get the fitness score of the plaintext based on the ciphertext and key."""
@@ -680,9 +693,26 @@ class HillClimb():
                 parent_score = child_score
                 parent_key = child_key
                 print(f"Parent score updated to {parent_score} with key {parent_key}\n")
+            
             counter += 2
         
+        print(f"Final parent key: {parent_key}\n")
+        print(f"Final parent score: {parent_score}\n")
+
+        # Get the final substitution of the ciphertext
+        final_cipher = self.decrypt_cipher(ciphertext, parent_key)
+        print(f"The final substitition of the ciphertext: {final_cipher}\n")
+
+        # Get the levenstein distance between all the candidate plaintext and the ciphertext
+        final_dist = self.get_lev_score(final_cipher)
+        print(f"The levenstein distance between all plaintext and the ciphertext: {final_dist}\n")
+
+        # Return the lowest levenstein distance
+        lowest_dist = min(final_dist, key=final_dist.get)
+        print(f"The lowest levenstein distance: {lowest_dist}\n")
         print("End of hill climb.")
+
+        return lowest_dist
 
 
 
@@ -747,9 +777,7 @@ if __name__ == "__main__":
         lowest_plaintext_dist = frequency_tables[lowest_diff[0]]
 
         # Perform hill climb
-        hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
-
-        print("End of test, ya moms")
+        plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
 
         # # Perform bigram/levenshtein comparison for more reliable attack
 
@@ -775,6 +803,6 @@ if __name__ == "__main__":
 
     # Print the plaintext guess
     print("++++++++++++++++++++++ PLAINTEXT GUESS +++++++++++++++++++++++\n")
-    print(f"Plaintext guess from input {candidate_num + 1}: {plaintext_guess}\n")
+    print(f"Plaintext guess from input {candidate_num + 1}: {frequency_tables[plaintext_guess_name]}\n")
     print(f"Guess made with random character insertion probability: {random_prob}\n")
     print("End of program.")
