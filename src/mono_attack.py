@@ -295,11 +295,6 @@ class Attack:
             new_ciphertext_1 += pt_1_pair[char].lower()
             new_ciphertext_2 += pt_2_pair[char].lower()
 
-        # call levy distance on new_ciphertext_1 and new_ciphertext_2
-        print(f"Original Ciphertext: {ciphertext}\n")
-        print(f"New Ciphertext 1: {new_ciphertext_1}\n")
-        print(f"New Ciphertext 2: {new_ciphertext_2}\n")
-
         # Sum of squares of differences between the expected and actual frequencies
         ciphertext_1_freq = self.get_new_frequency(new_ciphertext_1)
         ciphertext_2_freq = self.get_new_frequency(new_ciphertext_2)
@@ -310,18 +305,6 @@ class Attack:
         print(f"Sum of differences for pt {idx1} and new ciphertext: {sum_diff_1}\n")
         print(f"Sum of differences for pt {idx2} and new ciphertext: {sum_diff_2}\n")
 
-        # Calculate levenstein distance
-        # control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt.txt")
-        # test_lev = lev(self.PLAINTEXT_PATH + "/" + f"pt1.txt", self.PLAINTEXT_PATH + "/" + f"pt.txt")
-        # test_lev = lev(self.PLAINTEXT_PATH + "/" + f"pt.txt", self.PLAINTEXT_PATH + "/" + f"pt.txt")
-        # lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
-        # lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
-
-        # print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
-        # print(f"Levenshtein distance for same string: {test_lev}\n")
-        # print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
-        # print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
-        
         return new_ciphertext_1, new_ciphertext_2
 
     def substitute_bigrams(self, ciphertext, idx1, idx2):
@@ -363,19 +346,6 @@ class Attack:
                 new_ciphertext_2 += pt_2_pair[chars]
             else:
                 new_ciphertext_2 += chars
-                
-        # print(f"Original Ciphertext (BIGRAM): {ciphertext}\n")
-        # print(f"New Ciphertext 1 (BIGRAM): {new_ciphertext_1}\n")
-        # print(f"New Ciphertext 2 (BIGRAM): {new_ciphertext_2}\n")
-
-        # Calculate levenstein distance
-        # control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt.txt")
-        # lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
-        # lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
-
-        # print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
-        # print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
-        # print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
         
         return new_ciphertext_1, new_ciphertext_2
 
@@ -419,19 +389,6 @@ class Attack:
             else:
                 new_ciphertext_2 += chars
 
-        # print(f"Original Ciphertext (TRIGRAM): {ciphertext}\n")
-        # print(f"New Ciphertext 1 (TRIGRAM): {new_ciphertext_1}\n")
-        # print(f"New Ciphertext 2 (TRIGRAM): {new_ciphertext_2}\n")
-
-        # Calculate levenstein distance
-        # control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt.txt")
-        # lev_dist_1 = lev(new_ciphertext_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
-        # lev_dist_2 = lev(new_ciphertext_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
-
-        # print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
-        # print(f"Levenshtein distance for pt {idx1} and new ciphertext: {lev_dist_1}\n")
-        # print(f"Levenshtein distance for pt {idx2} and new ciphertext: {lev_dist_2}\n")
-
         return new_ciphertext_1, new_ciphertext_2
     
     def levenshtein(self, ciphertext, idx1, idx2):
@@ -439,6 +396,10 @@ class Attack:
         single_sub_1, single_sub_2 = self.substitute_single(ciphertext, idx1, idx2)
         bigram_sub_1, bigram_sub_2 = self.substitute_bigrams(ciphertext, idx1, idx2)
         trigram_sub_1, trigram_sub_2 = self.substitute_trigrams(ciphertext, idx1, idx2)
+
+        print(f"Original Ciphertext: {ciphertext}\n")
+        print(f"New Ciphertext 1: {single_sub_1}\n")
+        print(f"New Ciphertext 2: {single_sub_2}\n")
 
         print(f"Original Ciphertext (BIGRAM): {ciphertext}\n")
         print(f"New Ciphertext 1 (BIGRAM): {bigram_sub_1}\n")
