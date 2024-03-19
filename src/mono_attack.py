@@ -187,11 +187,13 @@ class Attack:
     BIGRAM = {}
     TRIGRAM = {}
     CIPHER_FREQUENCY = {}
+    LETTER_FREQUENCY_HALF = {}
 
     # SECTION 2.2: METHODS TO ATTACK THROUGH DISTRIBUTION/FREQUENCY ANALYSIS (randomness <= 15%)
     def __init__(self, ciphertext, LETTER_FREQUENCY):
         self.ciphertext = ciphertext
         self.LETTER_FREQUENCY = LETTER_FREQUENCY
+        self.candidate_count = 0
         self.generate_cipher_freqeuency()
 
     def generate_cipher_freqeuency(self):
@@ -251,10 +253,10 @@ class Attack:
             sum_of_diffs += freq_diff
         return sum_of_diffs
     
-    def get_all_diffs(self):
+    def get_all_diffs(self, plaintext_dist):
         """Get the sum of the squares of the differences between the expected and actual frequencies for each candidate plaintext."""
         diff_map = {}
-        for candidate_name, candidate_dist in self.LETTER_FREQUENCY.items():
+        for candidate_name, candidate_dist in plaintext_dist.items():
             sum_diff = self.get_sum_squares(self.CIPHER_FREQUENCY, candidate_dist)
             print(f"Difference score between ciphertext and {candidate_name}: {sum_diff}\n")
             diff_map[candidate_name] = sum_diff
@@ -263,7 +265,7 @@ class Attack:
     def improved_attack(self):
         """Perform an improved attack to find the best shifts."""
         # Create a map of the differences between the expected and actual frequencies
-        difference_map = self.get_all_diffs()
+        difference_map = self.get_all_diffs(self.LETTER_FREQUENCY)
         
         # Get the minimum difference between the expected and actual frequencies
         found_freq_key = min(difference_map, key=difference_map.get)
@@ -452,6 +454,19 @@ class Attack:
             file_body = list(filter(None, file_body))
         return file_body
 
+    def get_candidates_half(self):
+        """Get the frequency of each letter in each candidate plaintext (second half)."""
+        # Read a file of candidate plaintexts
+        file_body = []
+        with open(self.DICT_PATH, "r") as file:
+            for line in file:
+                file_body.append(line.strip())
+            file_body = list(filter(None, file_body))
+
+            # split each element in our list of plaintexts
+            file_body = [text[len(text) // 2:] for text in file_body]
+        return file_body
+
     def bigram(self, ciphertext):
         """Perform bigram analysis on the candidate plaintexts and the ciphertext."""
         file_body = self.get_candidates()
@@ -511,6 +526,61 @@ class Attack:
 
         return trigram_c
 
+    # SECTION 2.4: METHODS TO ATTACK THROUGH STRING ANALYSIS ON HALF OF THE CIPHERTEXT
+    def get_candidates_half(self):
+        """Get the frequency of each letter in each candidate plaintext (second half)."""
+        # Read a file of candidate plaintexts
+        file_body = []
+        with open(self.DICT_PATH, "r") as file:
+            for line in file:
+                file_body.append(line.strip())
+            file_body = list(filter(None, file_body))
+
+            # split each element in our list of plaintexts
+            file_body = [text[len(text) // 2:] for text in file_body]
+        return file_body
+
+    def get_frequency_half(self, file_body):
+        """Find the frequency of each letter in the second half of the candidate plaintext."""
+        # Get the frequency of each letter in each plaintext
+        for plaintext in file_body:
+
+            # Find the probability of each letter in the message
+            letter_counts = [0] * 27
+            total_letters = 0
+            for char in plaintext:
+                if char.isalpha():
+                    total_letters += 1
+                    letter_counts[ord(char.upper()) - ord('A')] += 1
+                elif char == ' ':
+                    total_letters += 1
+                    letter_counts[26] += 1
+
+            letter_prob = [count / total_letters for count in letter_counts]
+
+            # Make a dictionary of the letter probabilities
+            letter_prob = dict(zip([chr(i + ord('A')) for i in range(27)], letter_prob))
+            letter_prob[' '] = letter_prob.pop('[')
+            
+            # Add the letter probabilities to the global list
+            self.candidate_count += 1
+            self.LETTER_FREQUENCY_HALF[f"pt{self.candidate_count}"] =  letter_prob
+    
+    def improved_attack_half(self):
+        """Perform an improved attack to find the best shifts."""
+        # Create a map of the differences between the expected and actual frequencies
+        print("PRINTING HALF FREQUENCY DIFFERENCES\n")
+        difference_map = self.get_all_diffs(self.LETTER_FREQUENCY_HALF)
+        
+        # Get the minimum difference between the expected and actual frequencies
+        found_freq_key = min(difference_map, key=difference_map.get)
+        print(f"Best guess for the plaintext: {found_freq_key}\nDifference score: {difference_map[found_freq_key]}\n")
+
+        # Create a list of the differences between the expected and actual frequencies
+        with open(self.PLAINTEXT_PATH + "/" + f"{found_freq_key}.txt", "r") as file:
+            plaintext_body = file.read()
+            return plaintext_body
+
 if __name__ == "__main__":
 
     candidate_num = int(input("Enter the number of the candidate plaintext you would like to use (1-5): ")) - 1
@@ -555,27 +625,32 @@ if __name__ == "__main__":
         # Perform euclidean distance calculation between cipher and candidate distributions
         plaintext_guess = mono_attack.improved_attack()
     else:
-        # Perform bigram/levenshtein comparison for more reliable attack
+        # Perform imroved attack on the second half of the ciphertext
+        candidate_list_half = mono_attack.get_candidates_half()
+        mono_attack.get_frequency_half(candidate_list_half)
+        plaintext_guess = mono_attack.improved_attack_half()
 
-        # Get the two lowest sum of square differences
-        difference_map = mono_attack.get_all_diffs()
-        sorted_diffs = sorted(difference_map.items(), key=lambda x: x[1])
+        # # Perform bigram/levenshtein comparison for more reliable attack
+
+        # # Get the two lowest sum of square differences
+        # difference_map = mono_attack.get_all_diffs()
+        # sorted_diffs = sorted(difference_map.items(), key=lambda x: x[1])
         
-        # Store the two lowest differences
-        lowest_diff, second_lowest_diff = sorted_diffs[0], sorted_diffs[1]
-        print(f"Lowest difference: {lowest_diff}\nSecond lowest difference: {second_lowest_diff}\n")
+        # # Store the two lowest differences
+        # lowest_diff, second_lowest_diff = sorted_diffs[0], sorted_diffs[1]
+        # print(f"Lowest difference: {lowest_diff}\nSecond lowest difference: {second_lowest_diff}\n")
 
-        # Perform substitution on the ciphertext
-        mono_attack.substitute_single(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
+        # # Perform substitution on the ciphertext
+        # mono_attack.substitute_single(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
-        # plaintext_guess = mono_attack.bigram(randomized_cipher)
-        plaintext_guess = mono_attack.levenshtein(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
+        # # plaintext_guess = mono_attack.bigram(randomized_cipher)
+        # plaintext_guess = mono_attack.levenshtein(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
-        mono_attack.substitute_bigrams(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
+        # mono_attack.substitute_bigrams(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
-        # mono_attack.trigram(randomized_cipher)
+        # # mono_attack.trigram(randomized_cipher)
 
-        mono_attack.substitute_trigrams(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
+        # mono_attack.substitute_trigrams(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
 
     # Print the plaintext guess
     print("++++++++++++++++++++++ PLAINTEXT GUESS +++++++++++++++++++++++\n")
