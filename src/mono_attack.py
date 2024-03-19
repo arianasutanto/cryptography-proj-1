@@ -581,6 +581,110 @@ class Attack:
             plaintext_body = file.read()
             return plaintext_body
 
+class HillClimb():
+
+    TRIGRAM = {}
+
+    def __init__(self, ciphertext, plaintext_list, cipher_frequency):
+        self.ciphertext = ciphertext
+        self.plaintext_list = plaintext_list
+        self.cipher_frequency = cipher_frequency
+        self.candidate_count = 0
+        self.pt_trigram()
+
+    def get_initial_key(self, pt_frequency_1):
+        """Pick the initial key based on the frequency of the ciphertext."""
+        # Create a list of the differences between the expected and actual frequencies
+        cipher_freq = list(dict(sorted(self.cipher_frequency.items(), key=lambda x: x[1], reverse=True)).keys())
+        pt_freq = list(dict(sorted(pt_frequency_1.items(), key=lambda x: x[1], reverse=True)).keys())
+
+        pt_pair = {}
+        for i in range(len(cipher_freq)):
+            pt_pair[cipher_freq[i]] = pt_freq[i]
+
+        # Sort by the values in pt_pair
+        initial_key = pt_pair
+        print(initial_key)
+        return initial_key
+    
+    def swap_keys(self, key, pointer_1, pointer_2):
+        """Swap the char keys at the two pointers."""
+        key_chars = list(key.keys())
+        key_values = list(key.values())
+
+        # Swap the keys at the two pointers
+        temp = key_chars[pointer_2]
+        key_chars[pointer_2] = key_chars[pointer_1]
+        key_chars[pointer_1] = temp
+
+        new_key = dict(zip(key_chars, key_values))
+        print(f"New Key: {new_key}")
+        return new_key
+    
+    def pt_trigram(self):
+        """Perform trigram analysis on the candidate plaintexts and the ciphertext."""
+        file_body = self.plaintext_list
+        for plaintext in file_body:
+            self.candidate_count += 1
+            print(f"(HILLCLIMB) Plaintext {self.candidate_count}: {plaintext}")
+            trigram_plaintext = plaintext
+            trigram_p = Counter(trigram_plaintext[idx : idx + 3] for idx in range(len(plaintext) -1))
+            self.TRIGRAM[f"pt{self.candidate_count}"] = trigram_p
+
+    def ct_trigram(self, ciphertext):
+        """Perform trigram analysis on the ciphertext."""
+        trigram_ciphertext = ciphertext
+        trigram_c = Counter(trigram_ciphertext[idx : idx + 3] for idx in range(len(ciphertext) -1))
+        return trigram_c
+    
+    def decrypt_cipher(self, ciphertext, key):
+        """Get the shifted ciphertext based on the key."""
+        key = dict(sorted(key.items(), key=lambda x: x[1]))
+        print(f"Sorted key: {key}")
+        #alphabet = " abcdefghijklmnopqrstuvwxyz"
+        decrypt_cipher = ""
+        for i in range(len(ciphertext)):
+            char = ciphertext[i].upper()
+            decrypt_cipher += key[char].lower()
+        return decrypt_cipher
+    
+    def get_fitness_score(self, key, trigram_c, trigram_p):
+        """Get the fitness score of the plaintext based on the ciphertext and key."""
+
+        # Calculate score between cipher trigrams and plaintext trigrams
+        sum_diff = 0
+        for key, value in trigram_c.items():
+            sum_diff += (trigram_c[key] - trigram_p[key]) ** 2
+        return sum_diff
+    
+    def hill_climb(self, ciphertext, plaintext_guess, plaintext_name):
+        """Perform a hill climb to find the best shifts."""
+        # Some code to pick best random key
+        parent_key = self.get_initial_key(plaintext_guess)
+        iterations = 5
+        trigram_c = self.ct_trigram(ciphertext)
+        trigram_p = self.TRIGRAM[plaintext_name]
+        parent_score = self.get_fitness_score(parent_key, trigram_c, trigram_p)
+        print(f"Hill climb parent score with parent key {parent_key}: {parent_score}\n")
+        counter = 0
+        for i in range(iterations):
+            pointer_1 = counter
+            pointer_2 = counter + 1
+            child_key = parent_key
+            child_key = self.swap_keys(child_key, pointer_1, pointer_2)
+            new_ciph = self.decrypt_cipher(ciphertext, child_key)
+            new_trigram_c = self.ct_trigram(new_ciph)
+            child_score = self.get_fitness_score(child_key, new_trigram_c, trigram_p)
+            print(f"Child score with child key {child_key}: {child_score}\n")
+            if child_score < parent_score:
+                parent_score = child_score
+                parent_key = child_key
+                print(f"Parent score updated to {parent_score} with key {parent_key}\n")
+            counter += 2
+        
+        print("End of hill climb.")
+
+
 
 if __name__ == "__main__":
 
@@ -630,6 +734,22 @@ if __name__ == "__main__":
         candidate_list_half = mono_attack.get_candidates_half()
         mono_attack.get_frequency_half(candidate_list_half)
         plaintext_guess = mono_attack.improved_attack_half()
+
+        # Instantiate hill climb class
+        cipher_freq = mono_attack.get_cipher_frequency()
+        hill_attack = HillClimb(randomized_cipher, candidate_list, cipher_freq)
+
+        difference_map = mono_attack.get_all_diffs(frequency_tables)
+        sorted_diffs = sorted(difference_map.items(), key=lambda x: x[1])
+        
+        # Store the two lowest differences
+        lowest_diff = sorted_diffs[0]
+        lowest_plaintext_dist = frequency_tables[lowest_diff[0]]
+
+        # Perform hill climb
+        hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
+
+        print("End of test, ya moms")
 
         # # Perform bigram/levenshtein comparison for more reliable attack
 
