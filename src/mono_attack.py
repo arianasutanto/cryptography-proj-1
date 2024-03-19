@@ -5,6 +5,17 @@ from os import path
 from collections import Counter
 from Levenshtein import distance as lev
 
+global candidate_dict
+candidate_dict = {
+    "pt1": "unconquerable tropical pythagoras rebukingly price ephedra barmiest hastes spades fevers cause wisped overdecorates linked smitten trickle scanning cognize oaken casework significate influenceable precontrived clockers defalcation fruitless splintery kids placidness regenerate harebrained liberalism neuronic clavierist attendees matinees prospectively bubbies longitudinal raving relaxants rigged oxygens chronologist briniest tweezes profaning abeyances fixity gulls coquetted budgerigar drooled unassertive shelter subsoiling surmounted frostlike jobbed hobnailed fulfilling jaywalking testabilit",
+    "pt2": "protectorates committeemen refractory narcissus bridlers weathercocks occluding orchectomy syncoms denunciation chronaxy imperilment incurred defrosted beamy opticopupillary acculturation scouting curiousest tosh preconscious weekday reich saddler politicize mercerizes saucepan bifold chit reviewable easiness brazed essentially idler dependable predicable locales rededicated cowbird kvetched confusingly airdrops dreggier privileges tempter anaerobes glistened sartorial distrustfulness papillary ughs proctoring duplexed pitas traitorously unlighted cryptographer odysseys metamer either meliorat",
+    "pt3": "incomes shoes porcine pursue blabbered irritable ballets grabbed scything oscillogram despots pharynxes recompensive disarraying ghoulish mariachi wickerwork orientation candidnesses nets opalescing friending wining cypher headstrong insubmissive oceanid bowlegs voider recook parochial trop gravidly vomiting hurray friended uncontestable situate fen cyclecars gads macrocosms dhyana overruns impolite europe cynical jennet tumor noddy canted clarion opiner incurring knobbed planeload megohm dejecting campily dedicational invaluable praecoces coalescence dibbuk bustles flay acuities centimeters l",
+    "pt4": "rejoicing nectar asker dreadfuls kidnappers interstate incrusting quintessential neglecter brewage phosphatic angle obliquely bean walkup outflowed squib tightwads trenched pipe extents streakier frowning phantasmagories supinates imbibers inactivates tingly deserter steerages beggared pulsator laity salvageable bestrode interning stodgily cracker excisions quanted arranges poultries sleds shortly packages apparat fledge alderwomen halvah verdi ineffectualness entrenches franchising merchantability trisaccharide limekiln sportsmanship lassitudes recidivistic locating iou wardress estrus potboi",
+    "pt5": "headmaster attractant subjugator peddlery vigil dogfights pixyish comforts aretes felinities copycat salerooms schmeering institutor hairlocks speeder composers dramatics eyeholes progressives reminiscent hermaphrodism simultaneous spondaics hayfork armory refashioning battering darning tapper pancaked unaffected televiewer mussiness pollbook sieved reclines restamp cohosh excludes homelier coacts refashioned loiterer prospectively encouragers biggest pasters modernity governorships crusted buttoned wallpapered enamors supervisal nervily groaning disembody communion embosoming tattles pancakes"
+}
+
+
+
 # CLASS 1: GENERATING MONOALPHABETIC KEY AND ENCRYPTING PLAINTEXT
 class Mono:
     """Class to generate a monoalphabetic key and encrypt a candidate plaintext using the key."""
@@ -76,13 +87,8 @@ class Mono:
     
     def get_candidate(self):
         """Get each of the candidate plaintext."""
-        # Read a file of candidate plaintexts
-        file_body = []
-        with open(self.DICT_PATH, "r") as file:
-            for line in file:
-                file_body.append(line.strip())
-            file_body = list(filter(None, file_body))
-        return file_body
+        # read all candidate plaintexts from the dictionary
+        return list(candidate_dict.values())
     
     def get_frequency_table(self):
         return self.LETTER_FREQUENCY
@@ -270,10 +276,7 @@ class Attack:
         found_freq_key = min(difference_map, key=difference_map.get)
         print(f"Best guess for the plaintext: {found_freq_key}\nDifference score: {difference_map[found_freq_key]}\n")
 
-        # Create a list of the differences between the expected and actual frequencies
-        with open(self.PLAINTEXT_PATH + "/" + f"{found_freq_key}.txt", "r") as file:
-            plaintext_body = file.read()
-            return plaintext_body
+        return candidate_dict[found_freq_key]
         
     # SECTION 2.3: METHODS TO ATTACK THROUGH STRING SUBSTITUTION/LEVENSHTEIN ALGORITHM (randomness > 15%)
     def substitute_single(self, ciphertext, idx1, idx2):
@@ -316,10 +319,6 @@ class Attack:
         #cipher_freq = list(dict(sorted(self.CIPHER_FREQUENCY.items(), key=lambda x: x[1], reverse=True)).keys())
         pt_freq_1 = list(dict(sorted(self.BIGRAM[idx1].items(), key=lambda x: x[1], reverse=True)).keys())
         pt_freq_2 = list(dict(sorted(self.BIGRAM[idx2].items(), key=lambda x: x[1], reverse=True)).keys())
-
-        #print(f"Cipher bigram frequencies: {cipher_freq} ")
-        #print(f"PT 1 bigram frequencies: {pt_freq_1} ")
-        #print(f"PT 2 bigram frequencies: {pt_freq_2} ")
 
         pt_1_pair = {}
         pt_2_pair = {}
@@ -412,15 +411,15 @@ class Attack:
 
         # Calculate levenshtein distance
         # test_lev = lev(self.PLAINTEXT_PATH + "/" + f"pt1.txt", self.PLAINTEXT_PATH + "/" + f"pt.txt")
-        control_lev = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt.txt")
-        single_lev_dist_1 = lev(single_sub_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
-        single_lev_dist_2 = lev(single_sub_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+        control_lev = lev(ciphertext, candidate_dict["pt1"])
+        single_lev_dist_1 = lev(single_sub_1, candidate_dict[idx1])
+        single_lev_dist_2 = lev(single_sub_2, candidate_dict[idx2])
 
-        bigram_lev_dist_1 = lev(bigram_sub_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
-        bigram_lev_dist_2 = lev(bigram_sub_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+        bigram_lev_dist_1 = lev(bigram_sub_1, candidate_dict[idx1])
+        bigram_lev_dist_2 = lev(bigram_sub_2, candidate_dict[idx2])
 
-        trigram_lev_dist_1 = lev(trigram_sub_1, self.PLAINTEXT_PATH + "/" + f"{idx1}.txt")
-        trigram_lev_dist_2 = lev(trigram_sub_2, self.PLAINTEXT_PATH + "/" + f"{idx2}.txt")
+        trigram_lev_dist_1 = lev(trigram_sub_1, candidate_dict[idx1])
+        trigram_lev_dist_2 = lev(trigram_sub_2, candidate_dict[idx2])
 
         print(f"Levenshtein distance for control and new ciphertext: {control_lev}\n")
         print(f"Levenshtein distance for pt {idx1} and new ciphertext (SINGLE): {single_lev_dist_1}\n")
@@ -432,38 +431,22 @@ class Attack:
 
         # Choosing from single_lev as of now
         if single_lev_dist_1 < single_lev_dist_2:
-            with open(self.PLAINTEXT_PATH + "/" + f"{idx1}.txt", "r") as file:
-                plaintext_body = file.read()
-                return plaintext_body
+            return candidate_dict[idx1]
         elif single_lev_dist_1 > single_lev_dist_2:
-            with open(self.PLAINTEXT_PATH + "/" + f"{idx2}.txt", "r") as file:
-                plaintext_body = file.read()
-                return plaintext_body
+            return candidate_dict[idx2]
         # Placeholder for now
         else:
             print("Levenshtein values in candidate plaintexts are equal.")
 
     def get_candidates(self):
         """Get the frequency of each letter in each candidate plaintext."""
-        # Read a file of candidate plaintexts
-        file_body = []
-        with open(self.DICT_PATH, "r") as file:
-            for line in file:
-                file_body.append(line.strip())
-            file_body = list(filter(None, file_body))
-        return file_body
+        # get all candidate plaintexts
+        return list(candidate_dict.values())
 
     def get_candidates_half(self):
         """Get the frequency of each letter in each candidate plaintext (second half)."""
-        # Read a file of candidate plaintexts
-        file_body = []
-        with open(self.DICT_PATH, "r") as file:
-            for line in file:
-                file_body.append(line.strip())
-            file_body = list(filter(None, file_body))
-
-            # split each element in our list of plaintexts
-            file_body = [text[len(text) // 2:] for text in file_body]
+        # split each element in our list of plaintexts
+        file_body = [text[len(text) // 2:] for text in list(candidate_dict.values())]
         return file_body
 
     def bigram(self, ciphertext):
@@ -478,10 +461,7 @@ class Attack:
             #print(f"Bigram Frequency for Plaintext {candidate}: {bigram_p}\n")
 
         bigram_ciphertext = ciphertext
-        bigram_c = Counter(bigram_ciphertext[idx : idx + 2] for idx in range(len(plaintext) -1))
-        #BIGRAM[ciphertext] = bigram_c
-        #print(f"Bigram Frequency for Ciphertext: {bigram_c}\n")
-        #self.compare_bigram_distributions(bigram_c)
+        bigram_c = Counter(bigram_ciphertext[idx : idx + 2] for idx in range(len(plaintext) -1))\
 
         return bigram_c
     
@@ -497,16 +477,12 @@ class Attack:
             print(f"curr bigram: {candidate_freq}")
             sum_of_diffs = 0
             for i in range(0,15):
-                #print(f"Cipher Frequency: {cipher_freq[i]}\n")
-                #print(f"Candidate Frequency: {candidate_freq[i]}\n")
                 freq_diff = (cipher_freq[i] - candidate_freq[i]) ** 2
-                #print(f"Difference in frequency for pt {key} and ciphertext (bigram): {freq_diff}\n")
-
                 sum_of_diffs += freq_diff
         
-            print(f"Sum of differences for pt {key} and ciphertext: {sum_of_diffs}\n")
+            #print(f"Sum of differences for pt {key} and ciphertext: {sum_of_diffs}\n")
 
-        # return sum_of_diffs
+        return sum_of_diffs
     
     def trigram(self, ciphertext):
         """Perform trigram analysis on the candidate plaintexts and the ciphertext."""
@@ -526,18 +502,6 @@ class Attack:
         return trigram_c
 
     # SECTION 2.4: METHODS TO ATTACK THROUGH STRING ANALYSIS ON HALF OF THE CIPHERTEXT
-    def get_candidates_half(self):
-        """Get the frequency of each letter in each candidate plaintext (second half)."""
-        # Read a file of candidate plaintexts
-        file_body = []
-        with open(self.DICT_PATH, "r") as file:
-            for line in file:
-                file_body.append(line.strip())
-            file_body = list(filter(None, file_body))
-
-            # split each element in our list of plaintexts
-            file_body = [text[len(text) // 2:] for text in file_body]
-        return file_body
 
     def get_frequency_half(self, file_body):
         """Find the frequency of each letter in the second half of the candidate plaintext."""
@@ -567,8 +531,7 @@ class Attack:
     
     def improved_attack_half(self):
         """Perform an improved attack to find the best shifts."""
-        # Create a map of the differences between the expected and actual frequencies
-        print("PRINTING HALF FREQUENCY DIFFERENCES\n")
+        # Create a map of the differences between the expected and actual frequencies\
         difference_map = self.get_all_diffs(self.LETTER_FREQUENCY_HALF)
         
         # Get the minimum difference between the expected and actual frequencies
@@ -576,19 +539,19 @@ class Attack:
         print(f"Best guess for the plaintext: {found_freq_key}\nDifference score: {difference_map[found_freq_key]}\n")
 
         # Create a list of the differences between the expected and actual frequencies
-        with open(self.PLAINTEXT_PATH + "/" + f"{found_freq_key}.txt", "r") as file:
-            plaintext_body = file.read()
-            return plaintext_body
+        return candidate_dict[found_freq_key]
 
 class HillClimb():
 
     PLAINTEXT_PATH = path.abspath(path.join(__file__, "..", "candidate_files"))
+    PLAINTEXT_FREQUENCY = {}
     TRIGRAM = {}
 
-    def __init__(self, ciphertext, plaintext_list, cipher_frequency):
+    def __init__(self, ciphertext, plaintext_list, cipher_frequency, plaintext_frequency):
         self.ciphertext = ciphertext
         self.plaintext_list = plaintext_list
         self.cipher_frequency = cipher_frequency
+        self.PLAINTEXT_FREQUENCY = plaintext_frequency
         self.candidate_count = 0
         self.pt_trigram()
 
@@ -604,7 +567,7 @@ class HillClimb():
 
         # Sort by the values in pt_pair
         initial_key = pt_pair
-        print(initial_key)
+        #print(initial_key)
         return initial_key
     
     def swap_keys(self, key, pointer_1, pointer_2):
@@ -618,7 +581,7 @@ class HillClimb():
         key_chars[pointer_1] = temp
 
         new_key = dict(zip(key_chars, key_values))
-        print(f"New Key: {new_key}")
+        #print(f"New Key: {new_key}")
         return new_key
     
     def pt_trigram(self):
@@ -626,7 +589,6 @@ class HillClimb():
         file_body = self.plaintext_list
         for plaintext in file_body:
             self.candidate_count += 1
-            print(f"(HILLCLIMB) Plaintext {self.candidate_count}: {plaintext}")
             trigram_plaintext = plaintext
             trigram_p = Counter(trigram_plaintext[idx : idx + 3] for idx in range(len(plaintext) -1))
             self.TRIGRAM[f"pt{self.candidate_count}"] = trigram_p
@@ -640,7 +602,7 @@ class HillClimb():
     def decrypt_cipher(self, ciphertext, key):
         """Get the shifted ciphertext based on the key."""
         key = dict(sorted(key.items(), key=lambda x: x[1]))
-        print(f"Sorted key: {key}")
+        #print(f"Sorted key: {key}")
         #alphabet = " abcdefghijklmnopqrstuvwxyz"
         decrypt_cipher = ""
         for i in range(len(ciphertext)):
@@ -651,14 +613,10 @@ class HillClimb():
     def get_lev_score(self, ciphertext):
         """Get the levenshtein distance between the ciphertext and all plaintext."""
         lev_dict = {}
-        counter = 0
-        for f in os.listdir(self.PLAINTEXT_PATH):
-            if f.endswith(".txt"):
-                counter += 1
-                lev_score = lev(ciphertext, self.PLAINTEXT_PATH + "/" + f"pt{counter}.txt")
-                print(f"Levenshtein distance between {f} and the ciphertext: {lev_score}\n")
-                cand_name = f.split(".")[0]
-                lev_dict[cand_name] = lev_score
+        for plaintext_name, plaintext_body in candidate_dict.items():
+            lev_score = lev(ciphertext, plaintext_body)
+            print(f"Levenshtein distance between {plaintext_name} and the ciphertext: {lev_score}\n")
+            lev_dict[plaintext_name] = lev_score
         return lev_dict
     
     def get_fitness_score(self, key, trigram_c, trigram_p):
@@ -767,7 +725,7 @@ if __name__ == "__main__":
 
         # Instantiate hill climb class
         cipher_freq = mono_attack.get_cipher_frequency()
-        hill_attack = HillClimb(randomized_cipher, candidate_list, cipher_freq)
+        hill_attack = HillClimb(randomized_cipher, candidate_list, cipher_freq, frequency_tables)
 
         difference_map = mono_attack.get_all_diffs(frequency_tables)
         sorted_diffs = sorted(difference_map.items(), key=lambda x: x[1])
@@ -778,6 +736,8 @@ if __name__ == "__main__":
 
         # Perform hill climb
         plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
+
+        plaintext_guess_body = candidate_dict[plaintext_guess_name]
 
         # # Perform bigram/levenshtein comparison for more reliable attack
 
@@ -803,6 +763,6 @@ if __name__ == "__main__":
 
     # Print the plaintext guess
     print("++++++++++++++++++++++ PLAINTEXT GUESS +++++++++++++++++++++++\n")
-    print(f"Plaintext guess from input {candidate_num + 1}: {frequency_tables[plaintext_guess_name]}\n")
+    print(f"Plaintext guess from input {candidate_num + 1}: {plaintext_guess_body}\n")
     print(f"Guess made with random character insertion probability: {random_prob}\n")
     print("End of program.")
