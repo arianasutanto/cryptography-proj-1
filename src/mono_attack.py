@@ -581,6 +581,7 @@ class Attack:
             plaintext_body = file.read()
             return plaintext_body
 
+
 if __name__ == "__main__":
 
     candidate_num = int(input("Enter the number of the candidate plaintext you would like to use (1-5): ")) - 1
