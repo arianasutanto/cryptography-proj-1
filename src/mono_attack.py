@@ -182,7 +182,9 @@ class Attack:
     DICT_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
     PLAINTEXT_PATH = path.abspath(path.join(__file__, "..", "candidate_files"))
     BIGRAM = {}
+    TRIGRAM = {}
     CIPHER_FREQUENCY = {}
+
 
     # SECTION 2: METHODS TO IMPROVED ATTACK
     def __init__(self, ciphertext, LETTER_FREQUENCY):
@@ -275,7 +277,7 @@ class Attack:
 
      # SECTION 3: METHODS TO PERFORM SECOND ATTACK (greater than 15%)
     def substitute_bi(self, ciphertext, idx1, idx2):
-        """sub each letter of ciphertext with corresponding frequency of plaintext"""
+        """sub each bigram of ciphertext with corresponding bigram frequency of plaintext"""
 
         cipher_freq = self.bigram(ciphertext)
         cipher_freq = list(cipher_freq.keys())
@@ -284,9 +286,9 @@ class Attack:
         pt_freq_1 = list(dict(sorted(self.BIGRAM[idx1].items(), key=lambda x: x[1], reverse=True)).keys())
         pt_freq_2 = list(dict(sorted(self.BIGRAM[idx2].items(), key=lambda x: x[1], reverse=True)).keys())
 
-        print(f"Cipher bigram frequencies: {cipher_freq} ")
-        print(f"PT 1 bigram frequencies: {pt_freq_1} ")
-        print(f"PT 2 bigram frequencies: {pt_freq_2} ")
+        #print(f"Cipher bigram frequencies: {cipher_freq} ")
+        #print(f"PT 1 bigram frequencies: {pt_freq_1} ")
+        #print(f"PT 2 bigram frequencies: {pt_freq_2} ")
 
 
         pt_1_pair = {}
@@ -432,6 +434,24 @@ class Attack:
 
         #return sum_of_diffs
 
+
+    def trigram(self, ciphertext):
+        """Perform trigram analysis on the candidate plaintexts and the ciphertext."""
+        file_body = self.get_candidates()
+        candidate = 0
+        for plaintext in file_body:
+            candidate += 1
+            trigram_plaintext = plaintext
+            trigram_p = Counter(trigram_plaintext[idx : idx + 3] for idx in range(len(plaintext) -1))
+            self.TRIGRAM[f"pt{candidate}"] = trigram_p
+            print(f"Trigram Frequency for Plaintext {candidate}: {trigram_p}\n")
+
+        trigram_ciphertext = ciphertext
+        trigram_c = Counter(trigram_ciphertext[idx : idx + 3] for idx in range(len(plaintext) -1))
+        #print(f"Trigram Frequency for Ciphertext: {trigram_c}\n")
+
+        #return trigram_c
+
     def bigram(self, ciphertext):
         """Perform bigram analysis on the candidate plaintexts and the ciphertext."""
         file_body = self.get_candidates()
@@ -441,12 +461,12 @@ class Attack:
             bigram_plaintext = plaintext
             bigram_p = Counter(bigram_plaintext[idx : idx + 2] for idx in range(len(plaintext) -1))
             self.BIGRAM[f"pt{candidate}"] = bigram_p
-            print(f"Bigram Frequency for Plaintext {candidate}: {bigram_p}\n")
+            #print(f"Bigram Frequency for Plaintext {candidate}: {bigram_p}\n")
 
         bigram_ciphertext = ciphertext
         bigram_c = Counter(bigram_ciphertext[idx : idx + 2] for idx in range(len(plaintext) -1))
         #BIGRAM[ciphertext] = bigram_c
-        print(f"Bigram Frequency for Ciphertext: {bigram_c}\n")
+        #print(f"Bigram Frequency for Ciphertext: {bigram_c}\n")
         #self.compare_bigram_distributions(bigram_c)
 
         return bigram_c
@@ -485,7 +505,7 @@ if __name__ == "__main__":
     mono_cipher.generate_frequency_table()
 
     ## STEP 3: PERFORM AN ATTACK
-    target_length = 690 # 10% of randomness on the ciphertext
+    target_length = 690 # 15% of randomness on the ciphertext
 
     # Create an instance of the Attack class
     frequency_tables = mono_cipher.get_frequency_table()
@@ -512,6 +532,8 @@ if __name__ == "__main__":
         plaintext_guess = mono_attack.bigram(randomized_cipher)
 
         mono_attack.substitute_bi(randomized_cipher, lowest_diff[0], second_lowest_diff[0])
+
+        mono_attack.trigram(randomized_cipher)
 
     # Print the plaintext guess
     print("++++++++++++++++++++++ PLAINTEXT GUESS +++++++++++++++++++++++\n")
