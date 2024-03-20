@@ -27,8 +27,6 @@ class Mono:
     """Class to generate a monoalphabetic key and encrypt a candidate plaintext using the key."""
 
     # SECTION 1.1: GLOBAL VARIABLES
-    DICT_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
-    
     candidate_count = 0
     LETTER_FREQUENCY = {}
 
@@ -163,8 +161,6 @@ class Attack:
     """Class to perform an attack and compare distributions."""
 
     # SECTION 2.1: GLOBAL VARIABLES
-    DICT_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
-    PLAINTEXT_PATH = path.abspath(path.join(__file__, "..", "candidate_files"))
     BIGRAM = {}
     TRIGRAM = {}
     CIPHER_FREQUENCY = {}
@@ -498,8 +494,7 @@ class Attack:
         return found_freq_key
 
 class HillClimb():
-
-    PLAINTEXT_PATH = path.abspath(path.join(__file__, "..", "candidate_files"))
+    """Class to perform a hill climb to find the best shifts."""
     PLAINTEXT_FREQUENCY = {}
     TRIGRAM = {}
 
@@ -632,7 +627,8 @@ class HillClimb():
         return lowest_dist_val, lowest_dist
 
 class Verify(HillClimb):
-
+    """Class to verify the attack and check if the levenstein distance is less than a threshold."""
+    
     def check_lev(self, threshold, lowest_lev_val, sorted_diffs, initial_guess_name):
         # if the levy score doesnt meet the threshold, try again with next candidate
         global_min = 0
