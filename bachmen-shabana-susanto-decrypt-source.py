@@ -8,17 +8,25 @@ from Levenshtein import distance as lev
 
 
 global candidate_dict
+# candidate_dict = {
+#     "pt1": "unconquerable tropical pythagoras rebukingly price ephedra barmiest hastes spades fevers cause wisped overdecorates linked smitten trickle scanning cognize oaken casework significate influenceable precontrived clockers defalcation fruitless splintery kids placidness regenerate harebrained liberalism neuronic clavierist attendees matinees prospectively bubbies longitudinal raving relaxants rigged oxygens chronologist briniest tweezes profaning abeyances fixity gulls coquetted budgerigar drooled unassertive shelter subsoiling surmounted frostlike jobbed hobnailed fulfilling jaywalking testabilit",
+#     "pt2": "protectorates committeemen refractory narcissus bridlers weathercocks occluding orchectomy syncoms denunciation chronaxy imperilment incurred defrosted beamy opticopupillary acculturation scouting curiousest tosh preconscious weekday reich saddler politicize mercerizes saucepan bifold chit reviewable easiness brazed essentially idler dependable predicable locales rededicated cowbird kvetched confusingly airdrops dreggier privileges tempter anaerobes glistened sartorial distrustfulness papillary ughs proctoring duplexed pitas traitorously unlighted cryptographer odysseys metamer either meliorat",
+#     "pt3": "incomes shoes porcine pursue blabbered irritable ballets grabbed scything oscillogram despots pharynxes recompensive disarraying ghoulish mariachi wickerwork orientation candidnesses nets opalescing friending wining cypher headstrong insubmissive oceanid bowlegs voider recook parochial trop gravidly vomiting hurray friended uncontestable situate fen cyclecars gads macrocosms dhyana overruns impolite europe cynical jennet tumor noddy canted clarion opiner incurring knobbed planeload megohm dejecting campily dedicational invaluable praecoces coalescence dibbuk bustles flay acuities centimeters l",
+#     "pt4": "rejoicing nectar asker dreadfuls kidnappers interstate incrusting quintessential neglecter brewage phosphatic angle obliquely bean walkup outflowed squib tightwads trenched pipe extents streakier frowning phantasmagories supinates imbibers inactivates tingly deserter steerages beggared pulsator laity salvageable bestrode interning stodgily cracker excisions quanted arranges poultries sleds shortly packages apparat fledge alderwomen halvah verdi ineffectualness entrenches franchising merchantability trisaccharide limekiln sportsmanship lassitudes recidivistic locating iou wardress estrus potboi",
+#     "pt5": "headmaster attractant subjugator peddlery vigil dogfights pixyish comforts aretes felinities copycat salerooms schmeering institutor hairlocks speeder composers dramatics eyeholes progressives reminiscent hermaphrodism simultaneous spondaics hayfork armory refashioning battering darning tapper pancaked unaffected televiewer mussiness pollbook sieved reclines restamp cohosh excludes homelier coacts refashioned loiterer prospectively encouragers biggest pasters modernity governorships crusted buttoned wallpapered enamors supervisal nervily groaning disembody communion embosoming tattles pancakes",
+#     "pt6": "reptilian buzzer transitive frowziest sockpuppet limericks fathomless kibbutzim morbidly omnivores quagmires vendetta quatrain rambling telemetric harbinger epistolary bedazzled tourniquet phlegmatic obsequious modularity finessed congeniality foxglove mystique trampoline vivacity dichotomy sycophantic nectarine quixotic zeitgeist waltzing cosmopolitan gobbledygook coriander virtuoso phosphorescent juxtapose flabbergasted octopus ephemeral loquacious juggernaut procrastinate labyrinthine polyglot serendipitous audacious moonstruck sanctimonious capitulate antidisestablishmentarianism zephyr in",
+#     "pt7": "anticipation layout myth smooth reckless rhythm torch photography circumstance species vein island cake incident trouser welcome compete suspect shortage generation trance sum quest viable variant blonde node bread executrix ethnic access nervous formation coincidence payment cigarette despise amuse fold debate medicine ministry meal bait draft transmission wood suit comfortable define character squeeze freshman council activity executive concede charge surgeon suntan vain offensive innovation habitat friendly lot projection policy treat sausage active admiration summit reproduction formation ",
+#     "pt8": "charm heel glimpse palace point damn econobox teach ostracize faint deliver bride remain ton pioneer navy nature steam resist costume north hole hypothesis birthday convention traction civilization eye pot banquet customer patience joy fix reserve structure suffering protection value taxi straw museum trait century overeat chemistry table squash swarm mention distort nationalist residence by guitar pair weight absence discourage ego provincial spot aware stun rest horizon origin establish dilute archive term dealer administration coincidence punch capture meat choke magnetic degree incongruous",
+#     "pt9": "concern cell overeat addicted precede bundle stock install dark hostility cart arrest arena excavation spare theft continental disaster inflation blow justify thoughtful path prejudice seasonal pipe eat trade demand blade stay crosswalk deputy civilian triangle migration critical genuine rehabilitation chemistry collect south computer primary wait variant priority old church ambiguity unrest tiger platform storm patrol television tax medieval risk glove race board stadium arrange family cooperation convulsion franchise make gear killer aquarium domination news inn cash table push requests felt",
+#     "pt10": "elaborate statement draw burst elephant gallery beneficiary salmon guarantee arrow excess rape conscious magnetic half vigorous gloom work freckle shrink build quiet cross act gas hell wisecrack safe obligation fisherman knife staircase opposition relationship freshman tense light fuel education onion late correction cup royalty promotion symptom hover revenge cluster duty mutual dominant treasurer leaflet houseplant discriminate fair member overall classroom buttocks explosion horse socialist discuss net voice show mother brown snatch brink revive ant regular sniff heel applied lighter trend"
+# }
+
 candidate_dict = {
     "pt1": "unconquerable tropical pythagoras rebukingly price ephedra barmiest hastes spades fevers cause wisped overdecorates linked smitten trickle scanning cognize oaken casework significate influenceable precontrived clockers defalcation fruitless splintery kids placidness regenerate harebrained liberalism neuronic clavierist attendees matinees prospectively bubbies longitudinal raving relaxants rigged oxygens chronologist briniest tweezes profaning abeyances fixity gulls coquetted budgerigar drooled unassertive shelter subsoiling surmounted frostlike jobbed hobnailed fulfilling jaywalking testabilit",
     "pt2": "protectorates committeemen refractory narcissus bridlers weathercocks occluding orchectomy syncoms denunciation chronaxy imperilment incurred defrosted beamy opticopupillary acculturation scouting curiousest tosh preconscious weekday reich saddler politicize mercerizes saucepan bifold chit reviewable easiness brazed essentially idler dependable predicable locales rededicated cowbird kvetched confusingly airdrops dreggier privileges tempter anaerobes glistened sartorial distrustfulness papillary ughs proctoring duplexed pitas traitorously unlighted cryptographer odysseys metamer either meliorat",
     "pt3": "incomes shoes porcine pursue blabbered irritable ballets grabbed scything oscillogram despots pharynxes recompensive disarraying ghoulish mariachi wickerwork orientation candidnesses nets opalescing friending wining cypher headstrong insubmissive oceanid bowlegs voider recook parochial trop gravidly vomiting hurray friended uncontestable situate fen cyclecars gads macrocosms dhyana overruns impolite europe cynical jennet tumor noddy canted clarion opiner incurring knobbed planeload megohm dejecting campily dedicational invaluable praecoces coalescence dibbuk bustles flay acuities centimeters l",
     "pt4": "rejoicing nectar asker dreadfuls kidnappers interstate incrusting quintessential neglecter brewage phosphatic angle obliquely bean walkup outflowed squib tightwads trenched pipe extents streakier frowning phantasmagories supinates imbibers inactivates tingly deserter steerages beggared pulsator laity salvageable bestrode interning stodgily cracker excisions quanted arranges poultries sleds shortly packages apparat fledge alderwomen halvah verdi ineffectualness entrenches franchising merchantability trisaccharide limekiln sportsmanship lassitudes recidivistic locating iou wardress estrus potboi",
     "pt5": "headmaster attractant subjugator peddlery vigil dogfights pixyish comforts aretes felinities copycat salerooms schmeering institutor hairlocks speeder composers dramatics eyeholes progressives reminiscent hermaphrodism simultaneous spondaics hayfork armory refashioning battering darning tapper pancaked unaffected televiewer mussiness pollbook sieved reclines restamp cohosh excludes homelier coacts refashioned loiterer prospectively encouragers biggest pasters modernity governorships crusted buttoned wallpapered enamors supervisal nervily groaning disembody communion embosoming tattles pancakes",
-    "pt6": "reptilian buzzer transitive frowziest sockpuppet limericks fathomless kibbutzim morbidly omnivores quagmires vendetta quatrain rambling telemetric harbinger epistolary bedazzled tourniquet phlegmatic obsequious modularity finessed congeniality foxglove mystique trampoline vivacity dichotomy sycophantic nectarine quixotic zeitgeist waltzing cosmopolitan gobbledygook coriander virtuoso phosphorescent juxtapose flabbergasted octopus ephemeral loquacious juggernaut procrastinate labyrinthine polyglot serendipitous audacious moonstruck sanctimonious capitulate antidisestablishmentarianism zephyr in",
-    "pt7": "anticipation layout myth smooth reckless rhythm torch photography circumstance species vein island cake incident trouser welcome compete suspect shortage generation trance sum quest viable variant blonde node bread executrix ethnic access nervous formation coincidence payment cigarette despise amuse fold debate medicine ministry meal bait draft transmission wood suit comfortable define character squeeze freshman council activity executive concede charge surgeon suntan vain offensive innovation habitat friendly lot projection policy treat sausage active admiration summit reproduction formation ",
-    "pt8": "charm heel glimpse palace point damn econobox teach ostracize faint deliver bride remain ton pioneer navy nature steam resist costume north hole hypothesis birthday convention traction civilization eye pot banquet customer patience joy fix reserve structure suffering protection value taxi straw museum trait century overeat chemistry table squash swarm mention distort nationalist residence by guitar pair weight absence discourage ego provincial spot aware stun rest horizon origin establish dilute archive term dealer administration coincidence punch capture meat choke magnetic degree incongruous",
-    "pt9": "concern cell overeat addicted precede bundle stock install dark hostility cart arrest arena excavation spare theft continental disaster inflation blow justify thoughtful path prejudice seasonal pipe eat trade demand blade stay crosswalk deputy civilian triangle migration critical genuine rehabilitation chemistry collect south computer primary wait variant priority old church ambiguity unrest tiger platform storm patrol television tax medieval risk glove race board stadium arrange family cooperation convulsion franchise make gear killer aquarium domination news inn cash table push requests felt",
-    "pt10": "elaborate statement draw burst elephant gallery beneficiary salmon guarantee arrow excess rape conscious magnetic half vigorous gloom work freckle shrink build quiet cross act gas hell wisecrack safe obligation fisherman knife staircase opposition relationship freshman tense light fuel education onion late correction cup royalty promotion symptom hover revenge cluster duty mutual dominant treasurer leaflet houseplant discriminate fair member overall classroom buttocks explosion horse socialist discuss net voice show mother brown snatch brink revive ant regular sniff heel applied lighter trend"
 }
 
 
@@ -655,7 +663,62 @@ class Verify(HillClimb):
             global_min_name = initial_guess_name
         return global_min, global_min_name
 
+def test():
+    # Measure the length of time it takes to run the attack test
+    start_time = datetime.now()
+
+    #ciphertext = input("Enter the ciphertext: ")
+
+    # Create an instance of the Mono class
+    mono_cipher = Mono()
+
+    candidate_list = mono_cipher.get_candidate() 
+
+    # Populate global letter frequency of all plaintexts
+    mono_cipher.generate_frequency_table()
+
+    # ***PERFORM AN ATTACK***
+    # Create an instance of the Attack class
+    frequency_tables = mono_cipher.get_frequency_table()
+
+    # Run Test
+    test_results = {"0": 0, "10": 0, "20": 0, "30": 0, "40": 0, "50": 0}
+    for rand_prob in [0, 10, 20, 30, 40, 50]:
+        for _ in range(100):
+            key = mono_cipher.generate_monoalphabetic_key()
+            rand_cand_num = random.randint(0, 4)
+            selected_candidate = candidate_list[rand_cand_num]
+            randomized_cipher = mono_cipher.coin_flip(rand_prob / 100, mono_cipher.encrypt(selected_candidate, key))
+            mono_attack = Attack(randomized_cipher, frequency_tables)
+            if rand_prob <= 10:
+                plaintext_guess = mono_attack.improved_attack()
+                if candidate_dict[plaintext_guess] == selected_candidate:
+                    test_results[str(rand_prob)] += 1
+            else:
+                cipher_freq = mono_attack.get_cipher_frequency()
+                hill_attack = HillClimb(randomized_cipher, candidate_list, cipher_freq, frequency_tables)
+                difference_map = mono_attack.get_all_diffs(frequency_tables)
+                sorted_diffs = sorted(difference_map.items(), key=lambda x: x[1])
+
+                lowest_diff = sorted_diffs[0]
+                lowest_plaintext_dist = frequency_tables[lowest_diff[0]]
+                lowest_lev_val, plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
+                verify_attack = Verify(randomized_cipher, candidate_list, cipher_freq, frequency_tables)
+                best_score, plaintext_guess_name = verify_attack.check_lev(550, lowest_lev_val, sorted_diffs, plaintext_guess_name)
+
+                if candidate_dict[plaintext_guess_name] == selected_candidate:
+                    test_results[str(rand_prob)] += 1
+        
+    for key, value in test_results.items():
+        print(f"Randomness: {key}, Accuracy: {value / 100}\n")
+    
+    # End time of program and get the total time
+    end_time = datetime.now()
+    print(f"Total time of program (five candidates): {end_time - start_time}\n")
+
 if __name__ == "__main__": 
+    # Run test
+    #test()
 
     ciphertext = input("Enter the ciphertext: ")
 
