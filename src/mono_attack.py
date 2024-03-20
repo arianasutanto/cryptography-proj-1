@@ -631,8 +631,9 @@ class HillClimb():
     def hill_climb(self, ciphertext, plaintext_guess, plaintext_name):
         """Perform a hill climb to find the best shifts."""
         # Some code to pick best random key
+        print("HILL CLIMB STARTING WITH " + plaintext_name)
         parent_key = self.get_initial_key(plaintext_guess)
-        iterations = 5
+        iterations = 13
         trigram_c = self.ct_trigram(ciphertext)
         trigram_p = self.TRIGRAM[plaintext_name]
         parent_score = self.get_fitness_score(parent_key, trigram_c, trigram_p)
@@ -646,11 +647,11 @@ class HillClimb():
             new_ciph = self.decrypt_cipher(ciphertext, child_key)
             new_trigram_c = self.ct_trigram(new_ciph)
             child_score = self.get_fitness_score(child_key, new_trigram_c, trigram_p)
-            print(f"Child score with child key {child_key}: {child_score}\n")
+           # print(f"Child score with child key {child_key}: {child_score}\n")
             if child_score < parent_score:
                 parent_score = child_score
                 parent_key = child_key
-                print(f"Parent score updated to {parent_score} with key {parent_key}\n")
+           #     print(f"Parent score updated to {parent_score} with key {parent_key}\n")
             
             counter += 2
         
@@ -667,10 +668,12 @@ class HillClimb():
 
         # Return the lowest levenstein distance
         lowest_dist = min(final_dist, key=final_dist.get)
+        lowest_dist_val = final_dist[lowest_dist] #get actual int val 
+        #print("lowest dist val: " + str(lowest_dist_val))
         print(f"The lowest levenstein distance: {lowest_dist}\n")
         print("End of hill climb.")
 
-        return lowest_dist
+        return lowest_dist_val, lowest_dist
 
 
 
@@ -710,6 +713,7 @@ if __name__ == "__main__":
     target_length = 690 # 15% of randomness on the ciphertext
 
     # Create an instance of the Attack class
+
     frequency_tables = mono_cipher.get_frequency_table()
     mono_attack = Attack(randomized_cipher, frequency_tables)
 
@@ -729,13 +733,40 @@ if __name__ == "__main__":
 
         difference_map = mono_attack.get_all_diffs(frequency_tables)
         sorted_diffs = sorted(difference_map.items(), key=lambda x: x[1])
+        #print(f"debug: {sorted_diffs}")
+
         
-        # Store the two lowest differences
+        # Store the lowest difference
         lowest_diff = sorted_diffs[0]
+        #print(f"debug: {lowest_diff}")
         lowest_plaintext_dist = frequency_tables[lowest_diff[0]]
 
+        #lowest_plaintext_dist_debug = frequency_tables[lowest_diff[1]]
+        #print(f"debug: {lowest_plaintext_dist}")
+
         # Perform hill climb
-        plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
+
+        lowest_lev_val, plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
+
+        # if the levy score doesnt meet the threshold, try again with next candidate
+        if lowest_lev_val > 550:
+
+            for i in range(1, 4):
+
+                next_lowest_diff = sorted_diffs[i]
+                print(f"debug: {next_lowest_diff}")
+
+
+                next_lowest_dist = frequency_tables[next_lowest_diff[0]]
+                lowest_lev_val, plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, next_lowest_dist, next_lowest_diff[0])
+
+                if lowest_lev_val <= 550:
+
+                    print("Final guess made from running multiple rounds of hill climbing: " + plaintext_guess_name)
+
+                    break;
+
+
 
         plaintext_guess_body = candidate_dict[plaintext_guess_name]
 
@@ -763,6 +794,6 @@ if __name__ == "__main__":
 
     # Print the plaintext guess
     print("++++++++++++++++++++++ PLAINTEXT GUESS +++++++++++++++++++++++\n")
-    print(f"Plaintext guess from input {candidate_num + 1}: {plaintext_guess_body}\n")
+   # print(f"Plaintext guess from input {candidate_num + 1}: {plaintext_guess_body}\n")
     print(f"Guess made with random character insertion probability: {random_prob}\n")
     print("End of program.")
