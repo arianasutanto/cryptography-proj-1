@@ -663,7 +663,8 @@ class Verify(HillClimb):
             global_min_name = initial_guess_name
         return global_min, global_min_name
 
-def test():
+def test(iterations=100):
+    """Run a test to check the accuracy of the attack."""
     # Measure the length of time it takes to run the attack test
     start_time = datetime.now()
 
@@ -684,7 +685,7 @@ def test():
     # Run Test
     test_results = {"0": 0, "10": 0, "20": 0, "30": 0, "40": 0, "50": 0}
     for rand_prob in [0, 10, 20, 30, 40, 50]:
-        for _ in range(100):
+        for _ in range(iterations):
             key = mono_cipher.generate_monoalphabetic_key()
             rand_cand_num = random.randint(0, 4)
             selected_candidate = candidate_list[rand_cand_num]
@@ -718,7 +719,7 @@ def test():
 
 if __name__ == "__main__": 
     # Run test
-    #test()
+    #test(100)
 
     ciphertext = input("Enter the ciphertext: ")
 
@@ -767,46 +768,4 @@ if __name__ == "__main__":
     print("\n")
     print(f"My plaintext guess is : {plaintext_guess_body}\n")
     
-    
-    '''
-    # Measure the length of time it takes to run the attack test
-    start_time = datetime.now()
-    # Run Test
-    test_results = {"0": 0, "10": 0, "20": 0, "30": 0, "40": 0, "50": 0}
-    for rand_prob in [0, 10, 20, 30, 40, 50]:
-        for _ in range(100):
-            key = mono_cipher.generate_monoalphabetic_key()
-            rand_cand_num = random.randint(0, 4)
-            selected_candidate = candidate_list[rand_cand_num]
-            randomized_cipher = mono_cipher.coin_flip(rand_prob / 100, mono_cipher.encrypt(selected_candidate, key))
-            mono_attack = Attack(randomized_cipher, frequency_tables)
-            if rand_prob <= 10:
-                plaintext_guess = mono_attack.improved_attack()
-                if plaintext_guess == selected_candidate:
-                    test_results[str(rand_prob)] += 1
-            else:
-                cipher_freq = mono_attack.get_cipher_frequency()
-                hill_attack = HillClimb(randomized_cipher, candidate_list, cipher_freq, frequency_tables)
-                difference_map = mono_attack.get_all_diffs(frequency_tables)
-                sorted_diffs = sorted(difference_map.items(), key=lambda x: x[1])
-
-                lowest_diff = sorted_diffs[0]
-                lowest_plaintext_dist = frequency_tables[lowest_diff[0]]
-                lowest_lev_val, plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
-                print("print pre check_lev")
-                # check lev
-                verify_attack = Verify(randomized_cipher, candidate_list, cipher_freq, frequency_tables)
-                best_score, plaintext_guess_name = verify_attack.check_lev(550, lowest_lev_val, sorted_diffs, plaintext_guess_name)
-
-                if candidate_dict[plaintext_guess_name] == selected_candidate:
-                    test_results[str(rand_prob)] += 1
-        
-    for key, value in test_results.items():
-        print(f"Randomness: {key}, Accuracy: {value / 100}\n")
-    
-    # End time of program and get the total time
-    end_time = datetime.now()
-    print(f"Total time of program: {end_time - start_time}\n")
-
-    '''
 
