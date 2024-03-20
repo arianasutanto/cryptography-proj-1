@@ -2,8 +2,10 @@ import random
 import string
 import os
 from os import path
+from datetime import datetime
 from collections import Counter
 from Levenshtein import distance as lev
+
 
 global candidate_dict
 candidate_dict = {
@@ -11,9 +13,13 @@ candidate_dict = {
     "pt2": "protectorates committeemen refractory narcissus bridlers weathercocks occluding orchectomy syncoms denunciation chronaxy imperilment incurred defrosted beamy opticopupillary acculturation scouting curiousest tosh preconscious weekday reich saddler politicize mercerizes saucepan bifold chit reviewable easiness brazed essentially idler dependable predicable locales rededicated cowbird kvetched confusingly airdrops dreggier privileges tempter anaerobes glistened sartorial distrustfulness papillary ughs proctoring duplexed pitas traitorously unlighted cryptographer odysseys metamer either meliorat",
     "pt3": "incomes shoes porcine pursue blabbered irritable ballets grabbed scything oscillogram despots pharynxes recompensive disarraying ghoulish mariachi wickerwork orientation candidnesses nets opalescing friending wining cypher headstrong insubmissive oceanid bowlegs voider recook parochial trop gravidly vomiting hurray friended uncontestable situate fen cyclecars gads macrocosms dhyana overruns impolite europe cynical jennet tumor noddy canted clarion opiner incurring knobbed planeload megohm dejecting campily dedicational invaluable praecoces coalescence dibbuk bustles flay acuities centimeters l",
     "pt4": "rejoicing nectar asker dreadfuls kidnappers interstate incrusting quintessential neglecter brewage phosphatic angle obliquely bean walkup outflowed squib tightwads trenched pipe extents streakier frowning phantasmagories supinates imbibers inactivates tingly deserter steerages beggared pulsator laity salvageable bestrode interning stodgily cracker excisions quanted arranges poultries sleds shortly packages apparat fledge alderwomen halvah verdi ineffectualness entrenches franchising merchantability trisaccharide limekiln sportsmanship lassitudes recidivistic locating iou wardress estrus potboi",
-    "pt5": "headmaster attractant subjugator peddlery vigil dogfights pixyish comforts aretes felinities copycat salerooms schmeering institutor hairlocks speeder composers dramatics eyeholes progressives reminiscent hermaphrodism simultaneous spondaics hayfork armory refashioning battering darning tapper pancaked unaffected televiewer mussiness pollbook sieved reclines restamp cohosh excludes homelier coacts refashioned loiterer prospectively encouragers biggest pasters modernity governorships crusted buttoned wallpapered enamors supervisal nervily groaning disembody communion embosoming tattles pancakes"
+    "pt5": "headmaster attractant subjugator peddlery vigil dogfights pixyish comforts aretes felinities copycat salerooms schmeering institutor hairlocks speeder composers dramatics eyeholes progressives reminiscent hermaphrodism simultaneous spondaics hayfork armory refashioning battering darning tapper pancaked unaffected televiewer mussiness pollbook sieved reclines restamp cohosh excludes homelier coacts refashioned loiterer prospectively encouragers biggest pasters modernity governorships crusted buttoned wallpapered enamors supervisal nervily groaning disembody communion embosoming tattles pancakes",
+    "pt6": "reptilian buzzer transitive frowziest sockpuppet limericks fathomless kibbutzim morbidly omnivores quagmires vendetta quatrain rambling telemetric harbinger epistolary bedazzled tourniquet phlegmatic obsequious modularity finessed congeniality foxglove mystique trampoline vivacity dichotomy sycophantic nectarine quixotic zeitgeist waltzing cosmopolitan gobbledygook coriander virtuoso phosphorescent juxtapose flabbergasted octopus ephemeral loquacious juggernaut procrastinate labyrinthine polyglot serendipitous audacious moonstruck sanctimonious capitulate antidisestablishmentarianism zephyr in",
+    "pt7": "anticipation layout myth smooth reckless rhythm torch photography circumstance species vein island cake incident trouser welcome compete suspect shortage generation trance sum quest viable variant blonde node bread executrix ethnic access nervous formation coincidence payment cigarette despise amuse fold debate medicine ministry meal bait draft transmission wood suit comfortable define character squeeze freshman council activity executive concede charge surgeon suntan vain offensive innovation habitat friendly lot projection policy treat sausage active admiration summit reproduction formation ",
+    "pt8": "charm heel glimpse palace point damn econobox teach ostracize faint deliver bride remain ton pioneer navy nature steam resist costume north hole hypothesis birthday convention traction civilization eye pot banquet customer patience joy fix reserve structure suffering protection value taxi straw museum trait century overeat chemistry table squash swarm mention distort nationalist residence by guitar pair weight absence discourage ego provincial spot aware stun rest horizon origin establish dilute archive term dealer administration coincidence punch capture meat choke magnetic degree incongruous",
+    "pt9": "concern cell overeat addicted precede bundle stock install dark hostility cart arrest arena excavation spare theft continental disaster inflation blow justify thoughtful path prejudice seasonal pipe eat trade demand blade stay crosswalk deputy civilian triangle migration critical genuine rehabilitation chemistry collect south computer primary wait variant priority old church ambiguity unrest tiger platform storm patrol television tax medieval risk glove race board stadium arrange family cooperation convulsion franchise make gear killer aquarium domination news inn cash table push requests felt",
+    "pt10": "elaborate statement draw burst elephant gallery beneficiary salmon guarantee arrow excess rape conscious magnetic half vigorous gloom work freckle shrink build quiet cross act gas hell wisecrack safe obligation fisherman knife staircase opposition relationship freshman tense light fuel education onion late correction cup royalty promotion symptom hover revenge cluster duty mutual dominant treasurer leaflet houseplant discriminate fair member overall classroom buttocks explosion horse socialist discuss net voice show mother brown snatch brink revive ant regular sniff heel applied lighter trend"
 }
-
 
 
 # CLASS 1: GENERATING MONOALPHABETIC KEY AND ENCRYPTING PLAINTEXT
@@ -22,39 +28,9 @@ class Mono:
 
     # SECTION 1.1: GLOBAL VARIABLES
     DICT_PATH = path.abspath(path.join(__file__, "..", "plaintext_dictionary.txt"))
-    common_english_frequency = {'E' : 12.0, 
-                        'T' : 9.10, 
-                        'A' : 8.12, 
-                        'O' : 7.68, 
-                        'I' : 7.31, 
-                        'N' : 6.95, 
-                        'S' : 6.28, 
-                        'R' : 6.02, 
-                        'H' : 5.92, 
-                        'D' : 4.32, 
-                        'L' : 3.98,
-                        'U' : 2.88,
-                        'C' : 2.71,
-                        'M' : 2.61,
-                        'F' : 2.30,
-                        'Y' : 2.11,
-                        'W' : 2.09,
-                        'G' : 2.03,
-                        'P' : 1.82,
-                        'B' : 1.49,
-                        'V' : 1.11,
-                        'K' : 0.69,
-                        'X' : 0.17,
-                        'Q' : 0.11,
-                        'J' : 0.10,
-                        'Z' : 0.07,
-                        ' ' : 18.00}
-    
-    for key, value in common_english_frequency.items():
-        common_english_frequency[key] = value / 100
     
     candidate_count = 0
-    LETTER_FREQUENCY = {"Common Frequency": common_english_frequency}
+    LETTER_FREQUENCY = {}
 
     # SECTION 1.2: METHODS TO CREATE FREQUENCY TABLES
     def generate_frequency_table(self):
@@ -633,7 +609,7 @@ class HillClimb():
         # Some code to pick best random key
         print("HILL CLIMB STARTING WITH " + plaintext_name)
         parent_key = self.get_initial_key(plaintext_guess)
-        iterations = 13
+        iterations = len(parent_key) // 2
         trigram_c = self.ct_trigram(ciphertext)
         trigram_p = self.TRIGRAM[plaintext_name]
         parent_score = self.get_fitness_score(parent_key, trigram_c, trigram_p)
@@ -671,13 +647,46 @@ class HillClimb():
         lowest_dist_val = final_dist[lowest_dist] #get actual int val 
         #print("lowest dist val: " + str(lowest_dist_val))
         print(f"The lowest levenstein distance: {lowest_dist}\n")
-        print("End of hill climb.")
 
+        print("End of hill climb.")
         return lowest_dist_val, lowest_dist
 
+class Verify(HillClimb):
 
+    def check_lev(self, threshold, lowest_lev_val, sorted_diffs, initial_guess_name):
+        # if the levy score doesnt meet the threshold, try again with next candidate
+        print("Start of check_lev")
+        global_min = 0
+        global_min_name = initial_guess_name
+        if lowest_lev_val > threshold:
+            global_min = lowest_lev_val
+
+            for i in range(1, len(sorted_diffs)):
+                next_lowest_diff = sorted_diffs[i]
+                print(f"debug: {next_lowest_diff}")
+
+                next_lowest_dist = self.PLAINTEXT_FREQUENCY[next_lowest_diff[0]]
+                print("hello from check lev")
+                lowest_lev_val, plaintext_guess_name = self.hill_climb(self.ciphertext, next_lowest_dist, next_lowest_diff[0])
+                print("hello from check lev")
+                global_min_name = plaintext_guess_name
+                if global_min > lowest_lev_val:
+                    global_min = lowest_lev_val
+                    global_min_name = plaintext_guess_name
+                if lowest_lev_val <= 550:
+                    print("Final guess made from running multiple rounds of hill climbing: " + global_min_name)
+                    break
+                else:
+                    print(f"Levenshtein distance still too high. Best guess so far is: {global_min} from candidate {global_min_name}")
+        else:
+            global_min = lowest_lev_val
+            global_min_name = initial_guess_name
+        return global_min, global_min_name
 
 if __name__ == "__main__":
+
+    # Measure the length of time it takes to run the attack
+    start_time = datetime.now()
 
     candidate_num = int(input("Enter the number of the candidate plaintext you would like to use (1-5): ")) - 1
     random_prob = float(input("Enter the probability of random character insertion (0 - 100): ")) / 100
@@ -748,27 +757,48 @@ if __name__ == "__main__":
 
         lowest_lev_val, plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
 
-        # if the levy score doesnt meet the threshold, try again with next candidate
-        if lowest_lev_val > 550:
+        
 
-            for i in range(1, 4):
+    # Run Test
+    test_results = {"0": 0, "10": 0, "20": 0, "30": 0, "40": 0, "50": 0}
+    for rand_prob in [0, 10, 20, 30, 40, 50]:
+        for _ in range(100):
+            key = mono_cipher.generate_monoalphabetic_key()
+            rand_cand_num = random.randint(0, 4)
+            selected_candidate = candidate_list[rand_cand_num]
+            randomized_cipher = mono_cipher.coin_flip(rand_prob / 100, mono_cipher.encrypt(selected_candidate, key))
+            mono_attack = Attack(randomized_cipher, frequency_tables)
+            if rand_prob <= 10:
+                plaintext_guess = mono_attack.improved_attack()
+                if plaintext_guess == selected_candidate:
+                    test_results[str(rand_prob)] += 1
+            else:
+                cipher_freq = mono_attack.get_cipher_frequency()
+                hill_attack = HillClimb(randomized_cipher, candidate_list, cipher_freq, frequency_tables)
+                difference_map = mono_attack.get_all_diffs(frequency_tables)
+                sorted_diffs = sorted(difference_map.items(), key=lambda x: x[1])
 
-                next_lowest_diff = sorted_diffs[i]
-                print(f"debug: {next_lowest_diff}")
+                lowest_diff = sorted_diffs[0]
+                lowest_plaintext_dist = frequency_tables[lowest_diff[0]]
+                lowest_lev_val, plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, lowest_plaintext_dist, lowest_diff[0])
+                print("print pre check_lev")
+                # check lev
+                verify_attack = Verify(randomized_cipher, candidate_list, cipher_freq, frequency_tables)
+                best_score, plaintext_guess_name = verify_attack.check_lev(550, lowest_lev_val, sorted_diffs, plaintext_guess_name)
 
+                if candidate_dict[plaintext_guess_name] == selected_candidate:
+                    test_results[str(rand_prob)] += 1
+        
+    for key, value in test_results.items():
+        print(f"Randomness: {key}, Accuracy: {value / 100}\n")
+    
+    # End time of program and get the total time
+    end_time = datetime.now()
+    print(f"Total time of program: {end_time - start_time}\n")
 
-                next_lowest_dist = frequency_tables[next_lowest_diff[0]]
-                lowest_lev_val, plaintext_guess_name = hill_attack.hill_climb(randomized_cipher, next_lowest_dist, next_lowest_diff[0])
-
-                if lowest_lev_val <= 550:
-
-                    print("Final guess made from running multiple rounds of hill climbing: " + plaintext_guess_name)
-
-                    break;
-
-
-
-        plaintext_guess_body = candidate_dict[plaintext_guess_name]
+        
+        
+        #plaintext_guess_body = candidate_dict[plaintext_guess_name]
 
         # # Perform bigram/levenshtein comparison for more reliable attack
 
