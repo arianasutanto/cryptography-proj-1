@@ -6,7 +6,6 @@ from datetime import datetime
 from collections import Counter
 from Levenshtein import distance as lev
 
-
 global candidate_dict
 # candidate_dict = {
 #     "pt1": "unconquerable tropical pythagoras rebukingly price ephedra barmiest hastes spades fevers cause wisped overdecorates linked smitten trickle scanning cognize oaken casework significate influenceable precontrived clockers defalcation fruitless splintery kids placidness regenerate harebrained liberalism neuronic clavierist attendees matinees prospectively bubbies longitudinal raving relaxants rigged oxygens chronologist briniest tweezes profaning abeyances fixity gulls coquetted budgerigar drooled unassertive shelter subsoiling surmounted frostlike jobbed hobnailed fulfilling jaywalking testabilit",
@@ -377,7 +376,6 @@ class Attack:
         bigram_sub_1, bigram_sub_2 = self.substitute_bigrams(ciphertext, idx1, idx2)
         trigram_sub_1, trigram_sub_2 = self.substitute_trigrams(ciphertext, idx1, idx2)
 
-
         # Calculate levenshtein distance
         # test_lev = lev(self.PLAINTEXT_PATH + "/" + f"pt1.txt", self.PLAINTEXT_PATH + "/" + f"pt.txt")
         control_lev = lev(ciphertext, candidate_dict["pt1"])
@@ -390,13 +388,11 @@ class Attack:
         trigram_lev_dist_1 = lev(trigram_sub_1, candidate_dict[idx1])
         trigram_lev_dist_2 = lev(trigram_sub_2, candidate_dict[idx2])
 
-
-        # Choosing from single_lev as of now
-        if single_lev_dist_1 < single_lev_dist_2:
+        # Choosing from single_lev for placeholder
+        if single_lev_dist_1 <= single_lev_dist_2:
             return candidate_dict[idx1]
         elif single_lev_dist_1 > single_lev_dist_2:
             return candidate_dict[idx2]
-       
 
     def get_candidates(self):
         """Get the frequency of each letter in each candidate plaintext."""
@@ -462,7 +458,6 @@ class Attack:
         return trigram_c
 
     # SECTION 2.4: METHODS TO ATTACK THROUGH STRING ANALYSIS ON HALF OF THE CIPHERTEXT
-
     def get_frequency_half(self, file_body):
         """Find the frequency of each letter in the second half of the candidate plaintext."""
         # Get the frequency of each letter in each plaintext
@@ -501,6 +496,7 @@ class Attack:
         # Create a list of the differences between the expected and actual frequencies
         return found_freq_key
 
+# CLASS 3: FINAL HILL CLIMBING SOLUTION (randomness > 15%)
 class HillClimb():
     """Class to perform a hill climb to find the best shifts."""
     PLAINTEXT_FREQUENCY = {}
@@ -514,6 +510,7 @@ class HillClimb():
         self.candidate_count = 0
         self.pt_trigram()
 
+    # SECTION 3.1: SETTING AND SWAPPING THE KEY
     def get_initial_key(self, pt_frequency_1):
         """Pick the initial key based on the frequency of the ciphertext."""
         # Create a list of the differences between the expected and actual frequencies
@@ -568,7 +565,8 @@ class HillClimb():
             char = ciphertext[i].upper()
             decrypt_cipher += key[char].lower()
         return decrypt_cipher
-
+    
+    # SECTION 3.2: CALCULATING FITNESS SCORE BASED ON LEVENSHTEIN
     def get_lev_score(self, ciphertext):
         """Get the levenshtein distance between the ciphertext and all plaintext."""
         lev_dict = {}
@@ -587,6 +585,7 @@ class HillClimb():
             sum_diff += (trigram_c[key] - trigram_p[key]) ** 2
         return sum_diff
     
+    # SECTION 3.3: HILL CLIMBING ALGORITHM
     def hill_climb(self, ciphertext, plaintext_guess, plaintext_name):
         """Perform a hill climb to find the best shifts."""
         # Some code to pick best random key
@@ -621,21 +620,22 @@ class HillClimb():
         final_cipher = self.decrypt_cipher(ciphertext, parent_key)
         #print(f"The final substitition of the ciphertext: {final_cipher}\n")
 
-        # Get the levenstein distance between all the candidate plaintext and the ciphertext
+        # Get the levenshtein distance between all the candidate plaintext and the ciphertext
         final_dist = self.get_lev_score(final_cipher)
-        #print(f"The levenstein distance between all plaintext and the ciphertext: {final_dist}\n")
+        #print(f"The levenshtein distance between all plaintext and the ciphertext: {final_dist}\n")
 
-        # Return the lowest levenstein distance
+        # Return the lowest levenshtein distance
         lowest_dist = min(final_dist, key=final_dist.get)
         lowest_dist_val = final_dist[lowest_dist] #get actual int val 
         #print("lowest dist val: " + str(lowest_dist_val))
-        #print(f"The lowest levenstein distance: {lowest_dist}\n")
+        #print(f"The lowest levenshtein distance: {lowest_dist}\n")
 
         #print("End of hill climb.")
         return lowest_dist_val, lowest_dist
 
+# CLASS 4: TESTING ACCURACY OF HILL CLIMBING ALGORITHM
 class Verify(HillClimb):
-    """Class to verify the attack and check if the levenstein distance is less than a threshold."""
+    """Class to verify the attack and check if the levenshtein distance is less than a threshold."""
     
     def check_lev(self, threshold, lowest_lev_val, sorted_diffs, initial_guess_name):
         # if the levy score doesnt meet the threshold, try again with next candidate
@@ -717,6 +717,7 @@ def test(iterations=100):
     end_time = datetime.now()
     print(f"Total time of program (five candidates): {end_time - start_time}\n")
 
+# MAIN FUNCTION
 if __name__ == "__main__": 
     # Run test
     #test(100)
@@ -761,11 +762,8 @@ if __name__ == "__main__":
         verify_attack = Verify(ciphertext, candidate_list, cipher_freq, frequency_tables)
         best_score, plaintext_guess_name = verify_attack.check_lev(550, lowest_lev_val, sorted_diffs, plaintext_guess_name)
 
-
     plaintext_guess_body = candidate_dict[plaintext_guess_name]
 
     # Print the plaintext guess
     print("\n")
     print(f"My plaintext guess is : {plaintext_guess_body}\n")
-    
-
